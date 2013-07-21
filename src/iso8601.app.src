@@ -1,0 +1,8 @@
+{application, iso8601,
+ [
+  {description, "ISO8601 standard implementation"},
+  {vsn, "1"},
+  {registered, []},
+  {env, []}
+ ]}.
+
