@@ -14,7 +14,7 @@ parse_date_test_() ->
 	[
 		% Standard checks
 
-		% Format checks
+		% Format autodetection checks
 		?_assertEqual({1,1,1}, iso8601:parse_date(<<"00">>) ),
 		?_assertEqual({1,1,1}, iso8601:parse_date("00") ),
 		?_assertEqual({0,1,1}, iso8601:parse_date("0000") ),
@@ -48,13 +48,50 @@ parse_date_test_() ->
 		?_assertEqual({2013,1,7}, iso8601:parse_date("2013W02") ),
 		?_assertEqual({2013,1,7}, iso8601:parse_date("2013-W02") ),
 
+		% Format specific checks
+		?_assertEqual({1,1,1}, iso8601:parse_date(<<"00">>, calendar_century )),
+		?_assertEqual({1,1,1}, iso8601:parse_date("00", calendar_century)),
+		?_assertEqual({0,1,1}, iso8601:parse_date("0000", calendar_year )),
+		?_assertEqual({0,1,1}, iso8601:parse_date("0000-01", calendar_month )),
+		?_assertEqual({0,1,1}, iso8601:parse_date("0000-01-01", calendar_extended  )),
+		?_assertEqual({0,1,1}, iso8601:parse_date("00000101" ,calendar )),
+
+		?_assertEqual({0,1,1}, iso8601:parse_date("0000001", ordinal )),
+		?_assertEqual({0,1,1}, iso8601:parse_date("0000-001", ordinal_extended )),
+
+		?_assertEqual({2001,1,1}, iso8601:parse_date("20", calendar_century )),
+		?_assertEqual({2013,1,1}, iso8601:parse_date("2013", calendar_year )),
+		?_assertEqual({2013,7,1}, iso8601:parse_date("2013-07", calendar_month )),
+		?_assertEqual({2013,7,21}, iso8601:parse_date("2013-07-21", calendar_extended )),
+		?_assertEqual({2013,7,21}, iso8601:parse_date("20130721",calendar )),
+		?_assertEqual({2013,7,21}, iso8601:parse_date("2013202", ordinal )),
+		?_assertEqual({2013,7,21}, iso8601:parse_date("2013-202", ordinal_extended )),
+
+		?_assertEqual({2013,1,1}, iso8601:parse_date("2013001", ordinal )),
+		?_assertEqual({2013,1,1}, iso8601:parse_date("2013-001", ordinal_extended )),
+
+		?_assertEqual({2013,7,21}, iso8601:parse_date("2013W297", weekday )),
+		?_assertEqual({2013,7,21}, iso8601:parse_date("2013-W29-7", weekday_extended )),
+
+		?_assertEqual({2013,1,7}, iso8601:parse_date("2013W021", weekday )),
+		?_assertEqual({2013,1,7}, iso8601:parse_date("2013-W02-1", weekday_extended )),
+
+		?_assertEqual({2013,7,15}, iso8601:parse_date("2013W29", week )),
+		?_assertEqual({2013,7,15}, iso8601:parse_date("2013-W29", week_extended )),
+
+		?_assertEqual({2013,1,7}, iso8601:parse_date("2013W02", week )),
+		?_assertEqual({2013,1,7}, iso8601:parse_date("2013-W02", week_extended )),
+
 		% Binary format pasing
 		?_assertEqual({2013,7,21}, iso8601:parse_date(<<"2013-07-21">>) ),
 
 		% Wrong format checks
 		?_assertThrow({error, {wrong_format,""}}, iso8601:parse_date("") ),
 		?_assertThrow({error, {wrong_format,"poc"}}, iso8601:parse_date("poc") ),
-		?_assertThrow({error, {wrong_format,"2013X01X01"}}, iso8601:parse_date("2013X01X01") ),
+		?_assertThrow({error, {wrong_format,_}}, iso8601:parse_date("2013X01X01") ),
+		?_assertThrow({error, {wrong_format,_}}, iso8601:parse_date("2013",calendar) ),
+		?_assertThrow({error, {wrong_format,_}}, iso8601:parse_date("20130101",calendar_extended) ),
+		?_assertThrow({error, {wrong_format,_}}, iso8601:parse_date("2013-01-01",calendar) ),
 
 
 		% Standard day/month too_big/too_low checks

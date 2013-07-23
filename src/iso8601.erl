@@ -9,14 +9,33 @@
 -module(iso8601).
 
 %% API
--export([parse_date/1,
-	format_date/1,
-	format_date/2
-]).
+-export([
+		parse_date/1,
+		parse_date/2,
+		format_date/1,
+		format_date/2
+	]).
+
+-export_type([
+		date_format/0
+	]).
+
+-type date_format() ::
+		calendar|
+		calendar_extended|
+		calendar_month|
+		calendar_year|
+		calendar_century|
+		ordinal|
+		ordinal_extended|
+		weekday|
+		weekday_extended|
+		week|
+		week_extended .
 
 %%--------------------------------------------------------------------
 %% @doc:	Parses iso8601 caldendar dates as specified in standard on section 4.12
-%% @spec:	function(binary()) -> return type.
+%% @spec:	parse_date(Date::binary()|nonempty_string()) -> Date::calendar:date()
 %% @end
 %%--------------------------------------------------------------------
 
@@ -32,7 +51,7 @@ parse_date([Y1,Y2])
 	andalso Y1 >= $0 andalso Y1 =< $9
 	andalso Y2 >= $0 andalso Y2 =< $9
 	->
-	parse_date([Y1,Y2,$0,$1,$-,$0,$1,$-,$0,$1]);
+	parse_date([Y1,Y2,$0,$1,$0,$1,$0,$1], calendar);
 % Section 4.1.2.3 b - year
 parse_date([Y1,Y2,Y3,Y4])
 		when
@@ -43,7 +62,7 @@ parse_date([Y1,Y2,Y3,Y4])
 	andalso Y3 >= $0 andalso Y3 =< $9
 	andalso Y4 >= $0 andalso Y4 =< $9
 	->
-	parse_date([Y1,Y2,Y3,Y4,$-,$0,$1,$-,$0,$1]);
+	parse_date([Y1,Y2,Y3,Y4,$0,$1,$0,$1], calendar);
 % Section 4.1.2.3 a - month
 parse_date([Y1,Y2,Y3,Y4,$-,M1,M2])
 		when
@@ -57,7 +76,7 @@ parse_date([Y1,Y2,Y3,Y4,$-,M1,M2])
 	andalso M1 >= $0 andalso M1 =< $9
 	andalso M2 >= $0 andalso M2 =< $9
 	->
-	parse_date([Y1,Y2,Y3,Y4,$-,M1,M2,$-,$0,$1]);
+	parse_date([Y1,Y2,Y3,Y4,M1,M2,$0,$1], calendar);
 % Section 4.1.2.2 extended
 parse_date([Y1,Y2,Y3,Y4,$-,M1,M2,$-,D1,D2])
 		when
@@ -74,9 +93,186 @@ parse_date([Y1,Y2,Y3,Y4,$-,M1,M2,$-,D1,D2])
 	andalso D1 >= $0 andalso D1 =< $9
 	andalso D2 >= $0 andalso D2 =< $9
 	->
-	parse_date([Y1,Y2,Y3,Y4,M1,M2,D1,D2]);
+	parse_date([Y1,Y2,Y3,Y4,M1,M2,D1,D2], calendar);
 % Section 4.1.2.2 basic
 parse_date([Y1,Y2,Y3,Y4,M1,M2,D1,D2])
+		when
+	is_integer(Y1) andalso is_integer(Y2) andalso
+	is_integer(Y3) andalso is_integer(Y4) andalso
+	is_integer(M1) andalso is_integer(M2) andalso
+	is_integer(D1) andalso is_integer(D2)
+	andalso Y1 >= $0 andalso Y1 =< $9
+	andalso Y2 >= $0 andalso Y2 =< $9
+	andalso Y3 >= $0 andalso Y3 =< $9
+	andalso Y4 >= $0 andalso Y4 =< $9
+	andalso M1 >= $0 andalso M1 =< $9
+	andalso M2 >= $0 andalso M2 =< $9
+	andalso D1 >= $0 andalso D1 =< $9
+	andalso D2 >= $0 andalso D2 =< $9
+	->
+	parse_date([Y1,Y2,Y3,Y4,M1,M2,D1,D2], calendar);
+% Ordinal date formats
+
+% Section 4.1.3.2 extended
+parse_date([Y1,Y2,Y3,Y4,$-,D1,D2,D3])
+		when
+	is_integer(Y1) andalso is_integer(Y2) andalso is_integer(Y3) andalso
+	is_integer(Y4) andalso
+	is_integer(D1) andalso is_integer(D2) andalso is_integer(D3)
+	andalso Y1 >= $0 andalso Y1 =< $9
+	andalso Y2 >= $0 andalso Y2 =< $9
+	andalso Y3 >= $0 andalso Y3 =< $9
+	andalso Y4 >= $0 andalso Y4 =< $9
+	andalso D1 >= $0 andalso D1 =< $9
+	andalso D2 >= $0 andalso D2 =< $9
+	andalso D3 >= $0 andalso D3 =< $9
+	->
+	parse_date([Y1,Y2,Y3,Y4,D1,D2,D3], ordinal) ;
+% Section 4.1.3.2 basic
+parse_date([Y1,Y2,Y3,Y4,D1,D2,D3])
+		when
+	is_integer(Y1) andalso is_integer(Y2) andalso is_integer(Y3) andalso
+	is_integer(Y4) andalso
+	is_integer(D1) andalso is_integer(D2) andalso is_integer(D3)
+	andalso Y1 >= $0 andalso Y1 =< $9
+	andalso Y2 >= $0 andalso Y2 =< $9
+	andalso Y3 >= $0 andalso Y3 =< $9
+	andalso Y4 >= $0 andalso Y4 =< $9
+	andalso D1 >= $0 andalso D1 =< $9
+	andalso D2 >= $0 andalso D2 =< $9
+	andalso D3 >= $0 andalso D3 =< $9
+	->
+	parse_date([Y1,Y2,Y3,Y4,D1,D2,D3], ordinal) ;
+% Week date formats
+% 4.1.4.3 Basic format: YYYYWww example: 1985W15
+parse_date([Y1,Y2,Y3,Y4,$W,W1,W2])
+		when
+	is_integer(Y1) andalso is_integer(Y2) andalso
+	is_integer(Y3) andalso is_integer(Y4) andalso
+	is_integer(W1) andalso is_integer(W2)
+	andalso Y1 >= $0 andalso Y1 =< $9
+	andalso Y2 >= $0 andalso Y2 =< $9
+	andalso Y3 >= $0 andalso Y3 =< $9
+	andalso Y4 >= $0 andalso Y4 =< $9
+	andalso W1 >= $0 andalso W1 =< $9
+	andalso W2 >= $0 andalso W2 =< $9
+	->
+	parse_date([Y1,Y2,Y3,Y4,$W,W1,W2,$1], weekday);
+% 4.1.4.3 Extended format: YYYY-Www example: 1985-W15
+parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2])
+		when
+	is_integer(Y1) andalso is_integer(Y2) andalso
+	is_integer(Y3) andalso is_integer(Y4) andalso
+	is_integer(W1) andalso is_integer(W2)
+	andalso Y1 >= $0 andalso Y1 =< $9
+	andalso Y2 >= $0 andalso Y2 =< $9
+	andalso Y3 >= $0 andalso Y3 =< $9
+	andalso Y4 >= $0 andalso Y4 =< $9
+	andalso W1 >= $0 andalso W1 =< $9
+	andalso W2 >= $0 andalso W2 =< $9
+	->
+	parse_date([Y1,Y2,Y3,Y4,$W,W1,W2,$1], weekday);
+% 4.1.4.2 Basic format: YYYYWwwD example: 1985W155
+parse_date([Y1,Y2,Y3,Y4,$W,W1,W2,D1])
+		when
+	is_integer(Y1) andalso is_integer(Y2) andalso
+	is_integer(Y3) andalso is_integer(Y4) andalso
+	is_integer(W1) andalso is_integer(W2)
+	andalso is_integer(D1)
+	andalso Y1 >= $0 andalso Y1 =< $9
+	andalso Y2 >= $0 andalso Y2 =< $9
+	andalso Y3 >= $0 andalso Y3 =< $9
+	andalso Y4 >= $0 andalso Y4 =< $9
+	andalso W1 >= $0 andalso W1 =< $9
+	andalso W2 >= $0 andalso W2 =< $9
+	andalso D1 >= $1 andalso D1 =< $7
+	->
+	parse_date([Y1,Y2,Y3,Y4,$W,W1,W2,D1], weekday);
+% 4.1.4.2 Extended format: YYYY-Www-D example: 1985-W15-5
+parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,D1])
+		when
+	is_integer(Y1) andalso is_integer(Y2) andalso
+	is_integer(Y3) andalso is_integer(Y4) andalso
+	is_integer(W1) andalso is_integer(W2)
+	andalso is_integer(D1)
+	andalso Y1 >= $0 andalso Y1 =< $9
+	andalso Y2 >= $0 andalso Y2 =< $9
+	andalso Y3 >= $0 andalso Y3 =< $9
+	andalso Y4 >= $0 andalso Y4 =< $9
+	andalso W1 >= $0 andalso W1 =< $9
+	andalso W2 >= $0 andalso W2 =< $9
+	andalso D1 >= $1 andalso D1 =< $7
+	->
+	parse_date([Y1,Y2,Y3,Y4,$W,W1,W2,D1], weekday);
+parse_date(String)
+		when is_list(String) ->
+	throw({error, {wrong_format,String}}).
+
+
+
+%%--------------------------------------------------------------------
+%% @doc:	Parses iso8601 caldendar dates as specified in standard on section 4.12
+%% @spec:	parse_date(Date::binary()|nonempty_string(), Format::date_format()) -> Date::calendar:date()
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(parse_date(Date::binary()|nonempty_string(), Format::date_format()) -> Date::calendar:date()).
+
+parse_date(Date, Format)
+		when is_binary(Date) andalso is_atom(Format) ->
+	parse_date(binary_to_list(Date), Format);
+% Section 4.1.2.3 c - century
+parse_date([Y1,Y2], calendar_century)
+		when
+	is_integer(Y1) andalso is_integer(Y2)
+	andalso Y1 >= $0 andalso Y1 =< $9
+	andalso Y2 >= $0 andalso Y2 =< $9
+	->
+	parse_date([Y1,Y2,$0,$1,$0,$1,$0,$1], calendar);
+% Section 4.1.2.3 b - year
+parse_date([Y1,Y2,Y3,Y4], calendar_year)
+		when
+	is_integer(Y1) andalso is_integer(Y2) andalso is_integer(Y3)
+	andalso is_integer(Y4)
+	andalso Y1 >= $0 andalso Y1 =< $9
+	andalso Y2 >= $0 andalso Y2 =< $9
+	andalso Y3 >= $0 andalso Y3 =< $9
+	andalso Y4 >= $0 andalso Y4 =< $9
+	->
+	parse_date([Y1,Y2,Y3,Y4,$0,$1,$0,$1], calendar);
+% Section 4.1.2.3 a - month
+parse_date([Y1,Y2,Y3,Y4,$-,M1,M2], calendar_month )
+		when
+	is_integer(Y1) andalso is_integer(Y2) andalso 
+	is_integer(Y3) andalso is_integer(Y4) andalso
+	is_integer(M1) andalso is_integer(M2)
+	andalso Y1 >= $0 andalso Y1 =< $9
+	andalso Y2 >= $0 andalso Y2 =< $9
+	andalso Y3 >= $0 andalso Y3 =< $9
+	andalso Y4 >= $0 andalso Y4 =< $9
+	andalso M1 >= $0 andalso M1 =< $9
+	andalso M2 >= $0 andalso M2 =< $9
+	->
+	parse_date([Y1,Y2,Y3,Y4,M1,M2,$0,$1], calendar);
+% Section 4.1.2.2 extended
+parse_date([Y1,Y2,Y3,Y4,$-,M1,M2,$-,D1,D2], calendar_extended)
+		when
+	is_integer(Y1) andalso is_integer(Y2) andalso 
+	is_integer(Y3) andalso is_integer(Y4) andalso
+	is_integer(M1) andalso is_integer(M2) andalso
+	is_integer(D1) andalso is_integer(D2)
+	andalso Y1 >= $0 andalso Y1 =< $9
+	andalso Y2 >= $0 andalso Y2 =< $9
+	andalso Y3 >= $0 andalso Y3 =< $9
+	andalso Y4 >= $0 andalso Y4 =< $9
+	andalso M1 >= $0 andalso M1 =< $9
+	andalso M2 >= $0 andalso M2 =< $9
+	andalso D1 >= $0 andalso D1 =< $9
+	andalso D2 >= $0 andalso D2 =< $9
+	->
+	parse_date([Y1,Y2,Y3,Y4,M1,M2,D1,D2], calendar);
+% Section 4.1.2.2 basic
+parse_date([Y1,Y2,Y3,Y4,M1,M2,D1,D2], calendar)
 		when
 	is_integer(Y1) andalso is_integer(Y2) andalso
 	is_integer(Y3) andalso is_integer(Y4) andalso
@@ -114,7 +310,7 @@ parse_date([Y1,Y2,Y3,Y4,M1,M2,D1,D2])
 % Ordinal date formats
 
 % Section 4.1.3.2 extended
-parse_date([Y1,Y2,Y3,Y4,$-,D1,D2,D3])
+parse_date([Y1,Y2,Y3,Y4,$-,D1,D2,D3], ordinal_extended)
 		when
 	is_integer(Y1) andalso is_integer(Y2) andalso is_integer(Y3) andalso
 	is_integer(Y4) andalso
@@ -127,9 +323,9 @@ parse_date([Y1,Y2,Y3,Y4,$-,D1,D2,D3])
 	andalso D2 >= $0 andalso D2 =< $9
 	andalso D3 >= $0 andalso D3 =< $9
 	->
-	parse_date([Y1,Y2,Y3,Y4,D1,D2,D3]) ;
+	parse_date([Y1,Y2,Y3,Y4,D1,D2,D3], ordinal) ;
 % Section 4.1.3.2 basic
-parse_date([Y1,Y2,Y3,Y4,D1,D2,D3])
+parse_date([Y1,Y2,Y3,Y4,D1,D2,D3], ordinal)
 		when
 	is_integer(Y1) andalso is_integer(Y2) andalso is_integer(Y3) andalso
 	is_integer(Y4) andalso
@@ -157,7 +353,7 @@ parse_date([Y1,Y2,Y3,Y4,D1,D2,D3])
 		calendar:gregorian_days_to_date(Days+Day-1);
 % Week date formats
 % 4.1.4.3 Basic format: YYYYWww example: 1985W15
-parse_date([Y1,Y2,Y3,Y4,$W,W1,W2])
+parse_date([Y1,Y2,Y3,Y4,$W,W1,W2], week)
 		when
 	is_integer(Y1) andalso is_integer(Y2) andalso
 	is_integer(Y3) andalso is_integer(Y4) andalso
@@ -169,9 +365,9 @@ parse_date([Y1,Y2,Y3,Y4,$W,W1,W2])
 	andalso W1 >= $0 andalso W1 =< $9
 	andalso W2 >= $0 andalso W2 =< $9
 	->
-	parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,$1]);
+	parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,$1], weekday_extended);
 % 4.1.4.3 Extended format: YYYY-Www example: 1985-W15
-parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2])
+parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2], week_extended)
 		when
 	is_integer(Y1) andalso is_integer(Y2) andalso
 	is_integer(Y3) andalso is_integer(Y4) andalso
@@ -183,9 +379,9 @@ parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2])
 	andalso W1 >= $0 andalso W1 =< $9
 	andalso W2 >= $0 andalso W2 =< $9
 	->
-	parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,$1]);
+	parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,$1], weekday_extended);
 % 4.1.4.2 Basic format: YYYYWwwD example: 1985W155
-parse_date([Y1,Y2,Y3,Y4,$W,W1,W2,D1])
+parse_date([Y1,Y2,Y3,Y4,$W,W1,W2,D1], weekday)
 		when
 	is_integer(Y1) andalso is_integer(Y2) andalso
 	is_integer(Y3) andalso is_integer(Y4) andalso
@@ -199,9 +395,9 @@ parse_date([Y1,Y2,Y3,Y4,$W,W1,W2,D1])
 	andalso W2 >= $0 andalso W2 =< $9
 	andalso D1 >= $1 andalso D1 =< $7
 	->
-	parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,D1]);
+	parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,D1], weekday_extended);
 % 4.1.4.2 Extended format: YYYY-Www-D example: 1985-W15-5
-parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,D1])
+parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,D1], weekday_extended)
 		when
 	is_integer(Y1) andalso is_integer(Y2) andalso
 	is_integer(Y3) andalso is_integer(Y4) andalso
@@ -237,9 +433,11 @@ parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,D1])
 					Day - 1
 				)
 		end;
-parse_date(String)
+parse_date(String, Format)
 		when is_list(String) ->
-	throw({error, {wrong_format,String}}).
+	throw({error, {wrong_format,{String, Format}}}).
+
+
 
 %%--------------------------------------------------------------------
 %% @doc:	Formats date in calendar_extended format
@@ -258,20 +456,7 @@ format_date(Date) ->
 %% @end
 %%--------------------------------------------------------------------
 
--spec(format_date(calendar:date(), Type) -> nonempty_string() 
-	when Type::
-		calendar|
-		calendar_extended|
-		calendar_month|
-		calendar_year|
-		calendar_century|
-		ordinal|
-		ordinal_extended|
-		weekday|
-		weekday_extended|
-		week|
-		week_extended
-	).
+-spec(format_date(calendar:date(), Type :: date_format()) -> nonempty_string() ).
 
 format_date({Year, Month, Day}, calendar)
 		when is_integer(Year) andalso is_integer(Month)
