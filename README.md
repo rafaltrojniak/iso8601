@@ -14,12 +14,12 @@ There are two ways to use the functions : with specification of the format, and 
 {2013,4,11}
 > iso8601:parse_date("2013-07-21", calendar_extended ).
 {2013,7,21}
->iso8601:format_date({2011,12,31}).
+> iso8601:format_date({2011,12,31}).
 "2011-12-31"
->iso8601:format_date({2011,12,31}, calendar).
+> iso8601:format_date({2011,12,31}, calendar).
 "20111231"
->iso8601:format_date({2011,12,31}, calendar_extended).
+> iso8601:format_date({2011,12,31}, calendar_extended).
 "2011-12-31"
->iso8601:format_date({2011,12,31}, calendar_month).
+> iso8601:format_date({2011,12,31}, calendar_month).
 "2011-12"
 </pre></code>
