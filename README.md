@@ -10,7 +10,7 @@ There are two ways to use the functions : with specification of the format, and 
 {2013,1,7}
 2> iso8601:parse_date("2013-02-01").
 {2013,2,1}
-3> iso8601:parse_date("2013-101").   
+3> iso8601:parse_date("2013-101").
 {2013,4,11}
 4> iso8601:parse_date("2013-07-21", calendar_extended ).
 {2013,7,21}
