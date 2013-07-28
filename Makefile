@@ -20,3 +20,6 @@ clean:
 
 run: all
 	erl ${EBINS}
+
+edoc:
+	./rebar doc
