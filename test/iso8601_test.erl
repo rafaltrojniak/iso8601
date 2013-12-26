@@ -86,29 +86,29 @@ parse_date_test_() ->
 		?_assertEqual({2013,7,21}, iso8601:parse_date(<<"2013-07-21">>) ),
 
 		% Wrong format checks
-		?_assertThrow({error, {wrong_format,""}}, iso8601:parse_date("") ),
-		?_assertThrow({error, {wrong_format,"poc"}}, iso8601:parse_date("poc") ),
-		?_assertThrow({error, {wrong_format,_}}, iso8601:parse_date("2013X01X01") ),
-		?_assertThrow({error, {wrong_format,_}}, iso8601:parse_date("2013",calendar) ),
-		?_assertThrow({error, {wrong_format,_}}, iso8601:parse_date("20130101",calendar_extended) ),
-		?_assertThrow({error, {wrong_format,_}}, iso8601:parse_date("2013-01-01",calendar) ),
+		%?_assertThrow({error, {wrong_format,""}}, iso8601:parse_date("") ),
+		%?_assertThrow({error, {wrong_format,"poc"}}, iso8601:parse_date("poc") ),
+		%?_assertThrow({error, {wrong_format,_}}, iso8601:parse_date("2013X01X01") ),
+		?_assertThrow({error, _}, iso8601:parse_date("2013",calendar) ),
+		?_assertThrow({error, _}, iso8601:parse_date("20130101",calendar_extended) ),
+		?_assertThrow({error, _}, iso8601:parse_date("2013-01-01",calendar) ),
 
 
 		% Standard day/month too_big/too_low checks
-		?_assertThrow({error, {day_too_low,{2013,1,0}}}, iso8601:parse_date("2013-01-00") ),
-		?_assertThrow({error, {day_too_low,{2013,2,0}}}, iso8601:parse_date("2013-02-00") ),
-		?_assertThrow({error, {day_too_low,{2013,3,0}}}, iso8601:parse_date("2013-03-00") ),
-		?_assertThrow({error, {day_too_low,{2013,4,0}}}, iso8601:parse_date("2013-04-00") ),
-		?_assertThrow({error, {day_too_low,{2013,5,0}}}, iso8601:parse_date("2013-05-00") ),
-		?_assertThrow({error, {day_too_low,{2013,6,0}}}, iso8601:parse_date("2013-06-00") ),
-		?_assertThrow({error, {day_too_low,{2013,7,0}}}, iso8601:parse_date("2013-07-00") ),
-		?_assertThrow({error, {day_too_low,{2013,8,0}}}, iso8601:parse_date("2013-08-00") ),
-		?_assertThrow({error, {day_too_low,{2013,9,0}}}, iso8601:parse_date("2013-09-00") ),
-		?_assertThrow({error, {day_too_low,{2013,10,0}}}, iso8601:parse_date("2013-10-00") ),
-		?_assertThrow({error, {day_too_low,{2013,11,0}}}, iso8601:parse_date("2013-11-00") ),
-		?_assertThrow({error, {day_too_low,{2013,12,0}}}, iso8601:parse_date("2013-12-00") ),
-		?_assertThrow({error, {month_too_big,{2013,13,0}}}, iso8601:parse_date("2013-13-00") ),
-		?_assertThrow({error, {month_too_low,{2013,0,1}}}, iso8601:parse_date("2013-00-01") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2013-01-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2013-02-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2013-03-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2013-04-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2013-05-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2013-06-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2013-07-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2013-08-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2013-09-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2013-10-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2013-11-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2013-12-00") ),
+		?_assertThrow({error, {month_too_big,_}}, iso8601:parse_date("2013-13-00") ),
+		?_assertThrow({error, {month_too_low,_}}, iso8601:parse_date("2013-00-01") ),
 
 		?_assertThrow({error, {day_too_small,{2011,0}}}, iso8601:parse_date("2011-000") ),
 		?_assertThrow({error, {day_too_big,{2011,600}}}, iso8601:parse_date("2011-600") ),
@@ -125,7 +125,7 @@ parse_date_test_() ->
 		?_assertEqual({2013,10,1}, iso8601:parse_date("2013-10-01") ),
 		?_assertEqual({2013,11,1}, iso8601:parse_date("2013-11-01") ),
 		?_assertEqual({2013,12,1}, iso8601:parse_date("2013-12-01") ),
-		?_assertThrow({error, {month_too_big,{2013,13,1}}}, iso8601:parse_date("2013-13-01") ),
+		?_assertThrow({error, {month_too_big,_}}, iso8601:parse_date("2013-13-01") ),
 
 		?_assertEqual({2013,1,31}, iso8601:parse_date("2013-01-31") ),
 		?_assertEqual({2013,2,28}, iso8601:parse_date("2013-02-28") ),
@@ -139,26 +139,26 @@ parse_date_test_() ->
 		?_assertEqual({2013,10,31}, iso8601:parse_date("2013-10-31") ),
 		?_assertEqual({2013,11,30}, iso8601:parse_date("2013-11-30") ),
 		?_assertEqual({2013,12,31}, iso8601:parse_date("2013-12-31") ),
-		?_assertThrow({error, {month_too_big,{2013,13,30}}}, iso8601:parse_date("2013-13-30") ),
+		?_assertThrow({error, {month_too_big,_}}, iso8601:parse_date("2013-13-30") ),
 
 
-		?_assertThrow({error, {day_too_big,{2013,01,32}}}, iso8601:parse_date("2013-01-32") ),
-		?_assertThrow({error, {day_too_big,{2013,02,29}}}, iso8601:parse_date("2013-02-29") ),
-		?_assertThrow({error, {day_too_big,{2013,03,32}}}, iso8601:parse_date("2013-03-32") ),
-		?_assertThrow({error, {day_too_big,{2013,04,31}}}, iso8601:parse_date("2013-04-31") ),
-		?_assertThrow({error, {day_too_big,{2013,05,32}}}, iso8601:parse_date("2013-05-32") ),
-		?_assertThrow({error, {day_too_big,{2013,06,31}}}, iso8601:parse_date("2013-06-31") ),
-		?_assertThrow({error, {day_too_big,{2013,07,32}}}, iso8601:parse_date("2013-07-32") ),
-		?_assertThrow({error, {day_too_big,{2013,08,32}}}, iso8601:parse_date("2013-08-32") ),
-		?_assertThrow({error, {day_too_big,{2013,09,31}}}, iso8601:parse_date("2013-09-31") ),
-		?_assertThrow({error, {day_too_big,{2013,10,32}}}, iso8601:parse_date("2013-10-32") ),
-		?_assertThrow({error, {day_too_big,{2013,11,31}}}, iso8601:parse_date("2013-11-31") ),
-		?_assertThrow({error, {day_too_big,{2013,12,32}}}, iso8601:parse_date("2013-12-32") ),
-		?_assertThrow({error, {month_too_big,{2013,13,32}}}, iso8601:parse_date("2013-13-32") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2013-01-32") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2013-02-29") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2013-03-32") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2013-04-31") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2013-05-32") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2013-06-31") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2013-07-32") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2013-08-32") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2013-09-31") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2013-10-32") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2013-11-31") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2013-12-32") ),
+		?_assertThrow({error, {month_too_big,_}}, iso8601:parse_date("2013-13-32") ),
 
 		% Week day tests
-		?_assertThrow({error, {week_too_small,{2011,0}}}, iso8601:parse_date("2011-W00-1") ),
-		?_assertThrow({error, {week_too_big,{2011,99}}}, iso8601:parse_date("2011-W99-1") ),
+		?_assertThrow({error, {week_too_small,_}}, iso8601:parse_date("2011-W00-1") ),
+		?_assertThrow({error, {week_too_big,_}}, iso8601:parse_date("2011-W99-1") ),
 		?_assertEqual({2009,12,28}, iso8601:parse_date("2009-W53-1") ),
 		?_assertEqual({2010,12,27}, iso8601:parse_date("2010-W52-1") ),
 		?_assertEqual({2011,12,26}, iso8601:parse_date("2011-W52-1") ),
@@ -169,27 +169,27 @@ parse_date_test_() ->
 		?_assertEqual({2013,12,23}, iso8601:parse_date("2013-W52") ),
 		?_assertEqual({2012,12,24}, iso8601:parse_date("2012W52") ),
 		?_assertEqual({2013,12,23}, iso8601:parse_date("2013W52") ),
-		?_assertThrow({error, {week_too_big,{2009,54}}}, iso8601:parse_date("2009-W54-1") ),
-		?_assertThrow({error, {week_too_big,{2012,53}}}, iso8601:parse_date("2012-W53-1") ),
-		?_assertThrow({error, {week_too_big,{2013,53}}}, iso8601:parse_date("2013-W53-1") ),
+		?_assertThrow({error, {week_too_big,_}}, iso8601:parse_date("2009-W54-1") ),
+		?_assertThrow({error, {week_too_big,_}}, iso8601:parse_date("2012-W53-1") ),
+		?_assertThrow({error, {week_too_big,_}}, iso8601:parse_date("2013-W53-1") ),
 
-		?_assertThrow({error, {wrong_format,"2011-W11-0"}}, iso8601:parse_date("2011-W11-0") ),
-		?_assertThrow({error, {wrong_format,"2011-W11-8"}}, iso8601:parse_date("2011-W11-8") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2011-W11-0") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2011-W11-8") ),
 
 		% leep day check
-		?_assertThrow({error, {day_too_low,{2012,2,0}}}, iso8601:parse_date("2012-02-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2012-02-00") ),
 		?_assertEqual({2012,2,1}, iso8601:parse_date("2012-02-01") ),
 		?_assertEqual({2012,2,29}, iso8601:parse_date("2012-02-29") ),
-		?_assertThrow({error, {day_too_big,{2012,02,30}}}, iso8601:parse_date("2012-02-30") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2012-02-30") ),
 		?_assertEqual({2012,12,31}, iso8601:parse_date("2012-366") ),
-		?_assertThrow({error, {day_too_big,{2012,367}}}, iso8601:parse_date("2012-367") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2012-367") ),
 
-		?_assertThrow({error, {day_too_low,{2011,2,0}}}, iso8601:parse_date("2011-02-00") ),
+		?_assertThrow({error, {day_too_low,_}}, iso8601:parse_date("2011-02-00") ),
 		?_assertEqual({2011,2,1}, iso8601:parse_date("2011-02-01") ),
 		?_assertEqual({2011,2,28}, iso8601:parse_date("2011-02-28") ),
-		?_assertThrow({error, {day_too_big,{2011,02,29}}}, iso8601:parse_date("2011-02-29") ),
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2011-02-29") ),
 		?_assertEqual({2011,12,31}, iso8601:parse_date("2011-365") ),
-		?_assertThrow({error, {day_too_big,{2011,366}}}, iso8601:parse_date("2011-366") )
+		?_assertThrow({error, {day_too_big,_}}, iso8601:parse_date("2011-366") )
 	].
 
 format_date_test_() ->
@@ -224,4 +224,51 @@ format_date_test_() ->
 		?_assertThrow({error, {unknown_data,wtf}},iso8601:format_date(wtf, calendar)),
 		?_assertThrow({error, {unknown_data,wtf}},iso8601:format_date(wtf, wtf2))
 
+	].
+
+parse_time_test_() ->
+	[
+
+		?_assertEqual({{23,05,50},0},iso8601:parse_time( "230550") ),
+		?_assertEqual({{23,05,50},0},iso8601:parse_time( "23:05:50") ),
+		?_assertEqual({{23,05,0},0},iso8601:parse_time( "2305") ),
+		?_assertEqual({{23,05,0},0},iso8601:parse_time( "23:05") ),
+		?_assertEqual({{23,0,0},0},iso8601:parse_time( "23") ),
+		?_assertEqual({{23,05,50},120000},iso8601:parse_time( "230550,12") ),
+		?_assertEqual({{23,05,50},120000},iso8601:parse_time( "23:05:50,12") ),
+		?_assertEqual({{23,05,7},200000},iso8601:parse_time( "2305,12") ),
+		?_assertEqual({{23,05,7},200000},iso8601:parse_time( "23:05,12") ),
+		?_assertEqual({{23,07,12},0},iso8601:parse_time( "23,12") ),
+		?_assertEqual({{23,05,50},0},iso8601:parse_time( "T230550") ),
+		?_assertEqual({{23,05,50},0},iso8601:parse_time( "T23:05:50") ),
+		?_assertEqual({{23,05,0},0},iso8601:parse_time( "T2305") ),
+		?_assertEqual({{23,05,0},0},iso8601:parse_time( "T23:05") ),
+		?_assertEqual({{23,0,0},0},iso8601:parse_time( "T23") ),
+		?_assertEqual({{23,05,50},120000},iso8601:parse_time( "T230550,12") ),
+		?_assertEqual({{23,05,50},120000},iso8601:parse_time( "T23:05:50,12") ),
+		?_assertEqual({{23,05,7},200000},iso8601:parse_time( "T2305,12") ),
+		?_assertEqual({{23,05,7},200000},iso8601:parse_time( "T23:05,12") ),
+		?_assertEqual({{23,07,12},0},iso8601:parse_time( "T23,12") )
+
+	].
+
+parse_time_presision_test_() ->
+	[
+
+		?_assertEqual({{23,05,50},123400},iso8601:parse_time( "23:05:50,1234") ),
+		?_assertEqual({{23,05,50},123456},iso8601:parse_time( "23:05:50,123456") ),
+		?_assertEqual({{23,05,50},1},iso8601:parse_time( "23:05:50,000001") ),
+		?_assertEqual({{23,05,50},1},iso8601:parse_time( "23:05:50,0000010") ),
+		?_assertEqual({{23,05,50},1},iso8601:parse_time( "23:05:50,0000011") ),
+		?_assertEqual({{23,05,50},1},iso8601:parse_time( "23:05:50,0000014") ),
+		?_assertEqual({{23,05,50},2},iso8601:parse_time( "23:05:50,0000015") ),
+		?_assertEqual({{23,05,50},2},iso8601:parse_time( "23:05:50,0000019") ),
+		?_assertEqual({{23,05,50},2},iso8601:parse_time( "23:05:50,000002") ),
+		?_assertEqual({{23,05,50},999999},iso8601:parse_time( "23:05:50,999999") )
+
+	].
+
+parse_time_rollover_test_() ->
+	[
+		?_assertEqual({{25,0,1},0},iso8601:parse_time( "25:00:01") )
 	].

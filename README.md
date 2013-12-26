@@ -22,4 +22,12 @@ There are two ways to use the functions : with specification of the format, and 
 "2011-12-31"
 8> iso8601:format_date({2011,12,31}, calendar_month).
 "2011-12"
-</pre></code>
+</pre></code>at_date({2011,12,31}, calendar_extended).
+"2011-12-31"
+
+
+# TODO
+- Test parser & lexer
+- Test date builderat_date({2011,12,31}, calendar_extended).
+"2011-12-31"
+
