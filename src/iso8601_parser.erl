@@ -10,7 +10,7 @@ decimal([],_) ->
 decimal([Digit|X],Y) ->
  	Y*Digit + decimal(X,Y*10).
 
--file("/usr/lib/erlang/lib/parsetools-2.0.9/include/yeccpre.hrl", 0).
+-file("/usr/lib/erlang/lib/parsetools-2.0.10/include/yeccpre.hrl", 0).
 %%
 %% %CopyrightBegin%
 %%
