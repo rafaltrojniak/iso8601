@@ -212,7 +212,7 @@
 %% Time parser
 %% DEC  = 0-9
 %% Hour = 00
-%% Hour = 1, DEC 
+%% Hour = 1, DEC
 %% Hour = 2,0-3
 %% Minute = M1,DEC
 %% M1 = 0-5
@@ -279,120 +279,20 @@ parse_date(Date, Format)
 		when is_binary(Date) andalso is_atom(Format) ->
 	parse_date(binary_to_list(Date), Format);
 % Section 4.1.2.3 c - century
-parse_date([Y1,Y2], calendar_century)
-		when ?is_num(Y1) andalso ?is_num(Y2) ->
-	parse_date([Y1,Y2,$0,$1,$0,$1,$0,$1], calendar);
-% Section 4.1.2.3 b - year
-parse_date([Y1,Y2,Y3,Y4], calendar_year)
-		when ?is_num(Y1) andalso ?is_num(Y2) andalso ?is_num(Y3) andalso ?is_num(Y4) ->
-	parse_date([Y1,Y2,Y3,Y4,$0,$1,$0,$1], calendar);
-% Section 4.1.2.3 a - month
-parse_date([Y1,Y2,Y3,Y4,$-,M1,M2], calendar_month )
-		when ?is_num(Y1) andalso ?is_num(Y2) andalso ?is_num(Y3) andalso ?is_num(Y4)
-	andalso ?is_num(M1) andalso ?is_num(M2) ->
-	parse_date([Y1,Y2,Y3,Y4,M1,M2,$0,$1], calendar);
-% Section 4.1.2.2 extended
-parse_date([Y1,Y2,Y3,Y4,$-,M1,M2,$-,D1,D2], calendar_extended)
-		when ?is_num(Y1) andalso ?is_num(Y2) andalso ?is_num(Y3) andalso ?is_num(Y4)
-	andalso ?is_num(M1) andalso ?is_num(M2)
-	andalso ?is_num(D1) andalso ?is_num(D2) ->
-	parse_date([Y1,Y2,Y3,Y4,M1,M2,D1,D2], calendar);
-% Section 4.1.2.2 basic
-parse_date([Y1,Y2,Y3,Y4,M1,M2,D1,D2], calendar)
-		when ?is_num(Y1) andalso ?is_num(Y2) andalso ?is_num(Y3) andalso ?is_num(Y4)
-	andalso ?is_num(M1) andalso ?is_num(M2)
-	andalso ?is_num(D1) andalso ?is_num(D2) ->
-		{Year,[]}=string:to_integer([Y1,Y2,Y3,Y4]),
-		{Month,[]}=string:to_integer([M1,M2]),
-		{Day,[]}=string:to_integer([D1,D2]),
-		Date={Year, Month, Day},
-		case Date of
-			{_Year, Month, _Day} when Month =< 0 ->
-				throw ({error, { month_too_low, Date}});
-			{_Year, Month, _Day} when Month > 12 ->
-				throw ({error, { month_too_big, Date}});
-			{_Year, _Month, Day} when Day =< 0 ->
-				throw ({error, { day_too_low, Date}});
-			{_Year, _Month, Day} ->
-				LastDay=calendar:last_day_of_the_month(Year, Month),
-				if
-					LastDay < Day ->
-						throw ({error, { day_too_big, Date}});
-					true -> Date
-				end
-		end;
-
-% Ordinal date formats
-
-% Section 4.1.3.2 extended
-parse_date([Y1,Y2,Y3,Y4,$-,D1,D2,D3], ordinal_extended)
-		when ?is_num(Y1) andalso ?is_num(Y2) andalso ?is_num(Y3) andalso ?is_num(Y4)
-	andalso ?is_num(D1) andalso ?is_num(D2) andalso ?is_num(D3) ->
-	parse_date([Y1,Y2,Y3,Y4,D1,D2,D3], ordinal) ;
-% Section 4.1.3.2 basic
-parse_date([Y1,Y2,Y3,Y4,D1,D2,D3], ordinal)
-		when ?is_num(Y1) andalso ?is_num(Y2) andalso ?is_num(Y3) andalso ?is_num(Y4)
-	andalso ?is_num(D1) andalso ?is_num(D2) andalso ?is_num(D3) ->
-		{Year,[]}=string:to_integer([Y1,Y2,Y3,Y4]),
-		{Day,[]}=string:to_integer([D1,D2,D3]),
-		case {calendar:is_leap_year(Year) , Day} of
-			{true,Day} when Day>366
-			-> throw({error, {day_too_big, {Year, Day}}});
-			{false, Day} when Day>365
-			-> throw({error, {day_too_big, {Year, Day}}});
-			{_, Day} when Day<1
-			-> throw({error, {day_too_small, {Year, Day}}});
-			_ -> ok
-		end,
-		Days=calendar:date_to_gregorian_days(Year, 1, 1),
-		calendar:gregorian_days_to_date(Days+Day-1);
-% Week date formats
-% 4.1.4.3 Basic format: YYYYWww example: 1985W15
-parse_date([Y1,Y2,Y3,Y4,$W,W1,W2], week)
-		when ?is_num(Y1) andalso ?is_num(Y2) andalso ?is_num(Y3) andalso ?is_num(Y4)
-	andalso ?is_num(W1) andalso ?is_num(W2) ->
-	parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,$1], weekday_extended);
-% 4.1.4.3 Extended format: YYYY-Www example: 1985-W15
-parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2], week_extended)
-		when ?is_num(Y1) andalso ?is_num(Y2) andalso ?is_num(Y3) andalso ?is_num(Y4)
-	andalso ?is_num(W1) andalso ?is_num(W2) ->
-	parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,$1], weekday_extended);
-% 4.1.4.2 Basic format: YYYYWwwD example: 1985W155
-parse_date([Y1,Y2,Y3,Y4,$W,W1,W2,D1], weekday)
-		when ?is_num(Y1) andalso ?is_num(Y2) andalso ?is_num(Y3) andalso ?is_num(Y4)
-	andalso ?is_num(W1) andalso ?is_num(W2)
-	andalso is_integer(D1) andalso D1 >= $1 andalso D1 =< $7 ->
-	parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,D1], weekday_extended);
-% 4.1.4.2 Extended format: YYYY-Www-D example: 1985-W15-5
-parse_date([Y1,Y2,Y3,Y4,$-,$W,W1,W2,$-,D1], weekday_extended)
-		when ?is_num(Y1) andalso ?is_num(Y2) andalso ?is_num(Y3) andalso ?is_num(Y4)
-	andalso ?is_num(W1) andalso ?is_num(W2)
-	andalso is_integer(D1) andalso D1 >= $1 andalso D1 =< $7 ->
-		{Year,[]}=string:to_integer([Y1,Y2,Y3,Y4]),
-		{Week,[]}=string:to_integer([W1,W2]),
-		Day=D1-$0,
-
-		{_, LastWeekNumber} = calendar:iso_week_number(
-			calendar:gregorian_days_to_date(
-				gregorian_days_of_iso_w01_1(Year+1)-1
-			)
-		),
-		% Checks
-		if
-			Week <1 ->
-				throw({error, {week_too_small,{Year,Week}}});
-			Week > LastWeekNumber ->
-				throw({error, {week_too_big,{Year,Week}}});
-			true ->
-				calendar:gregorian_days_to_date(
-					gregorian_days_of_iso_w01_1(Year) +
-					(Week-1)*7 +
-					Day - 1
-				)
-		end;
-parse_date(String, Format)
-		when is_list(String) ->
-	throw({error, {wrong_format,{String, Format}}}).
+parse_date(String, Format) ->
+    {ok,LexTokens,1} = iso8601_lexer:string( String),
+    case iso8601_parser:parse(LexTokens) of
+        {ok, {date, {DetectedFormat, ParsingResult} }}  ->
+            if
+                DetectedFormat =:= Format ->
+                    {Date,_Time,_Micro}= build_moment({date, {DetectedFormat, ParsingResult} }),
+                    Date;
+                true ->
+                    throw({error, {wrong_format,DetectedFormat}})
+            end;
+        {error,Info} ->
+            throw({error, {failed_to_parse,Info}})
+    end.
 
 
 
@@ -502,7 +402,7 @@ format_date(Junk, _Type) ->
 %% @end
 %%--------------------------------------------------------------------
 
--spec(parse_time(Value::nonempty_string() ) 
+-spec(parse_time(Value::nonempty_string() )
 			-> {Time::calendar:time(),MicroSec :: non_neg_integer()}).
 
 parse_time("T" ++ Value ) ->
@@ -538,19 +438,19 @@ apply_tokens(Date,{H,M,_},U,[{second,S}|Elements]) ->
 	apply_tokens(Date,{H,M,S},U,Elements);
 apply_tokens(Date,OldTime,OldU,[{frac,Base,Numbers}|Elements]) ->
 	Seconds=list_to_integer(Numbers),
-	SumMicroseconds= OldU + Base * 
+	SumMicroseconds= OldU + Base *
 	if
 		length(Numbers)<6 ->
 			lists:foldl(
 				fun(_,Acc) -> Acc*10 end,
-				Seconds, 
+				Seconds,
 				lists:seq(1,6-length(Numbers)));
 		length(Numbers) == 6 ->
 			Seconds;
 		length(Numbers) > 6 ->
 			lists:foldl(
 				fun(_,Acc) -> round(Acc/10) end,
-				Seconds, 
+				Seconds,
 				lists:seq(1,length(Numbers)-6))
 	end,
 	Microseconds = SumMicroseconds rem 1000000,
@@ -558,7 +458,7 @@ apply_tokens(Date,OldTime,OldU,[{frac,Base,Numbers}|Elements]) ->
 
 	NewTime=calendar:seconds_to_time(
 						calendar:time_to_seconds( OldTime)
-						+ DiffSeconds 
+						+ DiffSeconds
 					 ),
 	apply_tokens(Date,NewTime,Microseconds,Elements);
 apply_tokens({_,M,D},Time,Utime,[{year,Year}|Elements]) ->
@@ -581,7 +481,7 @@ apply_tokens({Y,M,_},Time,Utime,[{monthday,Day}|Elements]) ->
 			throw ({error,{day_too_low,Day }});
 		Day > LastDay ->
 			throw ({error,{day_too_big,{Y,M,Day} }});
-		true -> 
+		true ->
 			apply_tokens({Y,M,Day},Time,Utime,Elements)
 	end;
 apply_tokens({Y,_,_},Time,Utime,[{weeknumber,Week},{weekday,Day}|Elements]) ->
@@ -590,7 +490,7 @@ apply_tokens({Y,_,_},Time,Utime,[{weeknumber,Week},{weekday,Day}|Elements]) ->
 			throw ({error,{day_too_low,Day }});
 		Day >= 8 ->
 			throw ({error,{day_too_big,{Y,Day} }});
-		true -> 
+		true ->
 			ok
 	end,
 	check_week_number(Y,Week),
@@ -639,15 +539,15 @@ check_week_number(Y,Week) ->
 				throw ({error,{week_too_big,{Y,Week} }});
 			true -> ok
 		end.
-	
 
-	
+
+
 %%--------------------------------------------------------------------
 %% @doc:	Parses time in specified format
 %% @end
 %%--------------------------------------------------------------------
 
--spec(parse_localtime(Format::localtime_format(), Value::nonempty_string() ) 
+-spec(parse_localtime(Format::localtime_format(), Value::nonempty_string() )
 			-> {Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()}).
 
 parse_localtime(Format, Value ) ->

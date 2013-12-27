@@ -4,11 +4,11 @@
 -file("src/iso8601_parser.yrl", 114).
 
 decimal(X) ->
-	decimal(lists:reverse(X),1).
+    decimal(lists:reverse(X),1).
 decimal([],_) ->
-	0;
+    0;
 decimal([Digit|X],Y) ->
- 	Y*Digit + decimal(X,Y*10).
+     Y*Digit + decimal(X,Y*10).
 
 -file("/usr/lib/erlang/lib/parsetools-2.0.10/include/yeccpre.hrl", 0).
 %%
