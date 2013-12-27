@@ -254,15 +254,13 @@
 parse_date(String) when is_binary(String) ->
 	parse_date(binary_to_list(String));
 parse_date(String) ->
-	{ok,LexTokens,1} = iso8601_lexer:string( String),
-  case iso8601_parser:parse(LexTokens) of
-    {ok,ParsingResult }  ->
-      {Date,_Time,_Micro}= build_moment(ParsingResult),
-      Date;
-    {error,Info} ->
-      throw({error, {wrong_format,Info}})
-  end.
-
+    {ok,LexTokens,1} = iso8601_lexer:string( String),
+    case iso8601_parser:parse(LexTokens) of
+        {ok, {date, {_DetectedFormat, ParsingResult} }}  ->
+            apply_date_tokens({0,1,1},ParsingResult);
+        {error,Info} ->
+            throw({error, {failed_to_parse,Info}})
+    end.
 
 
 
@@ -285,8 +283,7 @@ parse_date(String, Format) ->
         {ok, {date, {DetectedFormat, ParsingResult} }}  ->
             if
                 DetectedFormat =:= Format ->
-                    {Date,_Time,_Micro}= build_moment({date, {DetectedFormat, ParsingResult} }),
-                    Date;
+                    apply_date_tokens({0,1,1},ParsingResult);
                 true ->
                     throw({error, {wrong_format,DetectedFormat}})
             end;
@@ -523,6 +520,106 @@ apply_tokens({Year,_,_},Time,Utime,[{yearday,Day}|Elements]) ->
 apply_tokens(_,_,_,[Element|_]) ->
 	throw({unknown_token,Element});
 apply_tokens(Date,T,U,[]) ->
+	{Date,T,U}.
+
+apply_date_tokens({_,M,D},[{year,Year}|Elements]) ->
+    apply_date_tokens({Year,M,D},Elements);
+apply_date_tokens({_,M,D},[{century,Century}|Elements]) ->
+    apply_date_tokens({Century*100+1,M,D},Elements);
+apply_date_tokens({Y,_,D},[{month,Month}|Elements]) ->
+    if
+        Month >= 13 ->
+            throw ( {error, {month_too_big,Month}});
+        Month == 0 ->
+            throw ({error, { month_too_low, Month}});
+        true -> ok
+    end,
+    apply_date_tokens({Y,Month,D},Elements);
+apply_date_tokens({Y,M,_},[{monthday,Day}|Elements]) ->
+    LastDay=calendar:last_day_of_the_month(Y, M),
+    if
+        Day == 0 ->
+            throw ({error,{day_too_low,Day }});
+        Day > LastDay ->
+            throw ({error,{day_too_big,{Y,M,Day} }});
+        true ->
+            apply_date_tokens({Y,M,Day},Elements)
+    end;
+apply_date_tokens({Y,_,_},[{weeknumber,Week},{weekday,Day}|Elements]) ->
+    if
+        Day =< 0 ->
+            throw ({error,{day_too_low,Day }});
+        Day >= 8 ->
+            throw ({error,{day_too_big,{Y,Day} }});
+        true ->
+            ok
+    end,
+    check_week_number(Y,Week),
+    Date=calendar:gregorian_days_to_date(
+        gregorian_days_of_iso_w01_1(Y) +
+        (Week-1)*7 + Day - 1
+    ),
+    apply_date_tokens(Date,Elements);
+apply_date_tokens({Y,_,_},[{weeknumber,Week}|Elements]) ->
+    check_week_number(Y,Week),
+    Date=calendar:gregorian_days_to_date(
+        gregorian_days_of_iso_w01_1(Y) +
+        (Week-1)*7
+    ),
+    apply_date_tokens(Date,Elements);
+apply_date_tokens({Year,_,_},[{yearday,Day}|Elements]) ->
+    case {calendar:is_leap_year(Year) , Day} of
+        {true,Day} when Day>366
+            -> throw({error, {day_too_big, {Year, Day}}});
+        {false, Day} when Day>365
+            -> throw({error, {day_too_big, {Year, Day}}});
+        {_, Day} when Day<1
+            -> throw({error, {day_too_small, {Year, Day}}});
+        _ -> ok
+    end,
+    Date=
+        calendar:gregorian_days_to_date(
+            calendar:date_to_gregorian_days({Year,1,1})+Day-1),
+    apply_date_tokens(Date,Elements);
+apply_date_tokens(_,[Element|_]) ->
+    throw({unknown_token,Element});
+apply_date_tokens(Date,[]) ->
+    Date.
+
+apply_time_tokens(Date,{_,M,S},U,[{hour,H}|Elements]) ->
+	apply_time_tokens(Date,{H,M,S},U,Elements);
+apply_time_tokens(Date,{H,_,S},U,[{minute,M}|Elements]) ->
+	apply_time_tokens(Date,{H,M,S},U,Elements);
+apply_time_tokens(Date,{H,M,_},U,[{second,S}|Elements]) ->
+	apply_time_tokens(Date,{H,M,S},U,Elements);
+apply_time_tokens(Date,OldTime,OldU,[{frac,Base,Numbers}|Elements]) ->
+	Seconds=list_to_integer(Numbers),
+	SumMicroseconds= OldU + Base *
+	if
+		length(Numbers)<6 ->
+			lists:foldl(
+				fun(_,Acc) -> Acc*10 end,
+				Seconds,
+				lists:seq(1,6-length(Numbers)));
+		length(Numbers) == 6 ->
+			Seconds;
+		length(Numbers) > 6 ->
+			lists:foldl(
+				fun(_,Acc) -> round(Acc/10) end,
+				Seconds,
+				lists:seq(1,length(Numbers)-6))
+	end,
+	Microseconds = SumMicroseconds rem 1000000,
+	DiffSeconds = SumMicroseconds div 1000000,
+
+	NewTime=calendar:seconds_to_time(
+						calendar:time_to_seconds( OldTime)
+						+ DiffSeconds
+					 ),
+	apply_time_tokens(Date,NewTime,Microseconds,Elements);
+apply_time_tokens(_,_,_,[Element|_]) ->
+	throw({unknown_token,Element});
+apply_time_tokens(Date,T,U,[]) ->
 	{Date,T,U}.
 
 
