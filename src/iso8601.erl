@@ -240,6 +240,8 @@
 -type time_difference() :: {-12..12,0..59 }.
 
 -define( is_num(X), ( is_integer(X) andalso X >= $0 andalso X =< $9) ).
+-define( startDate, {0,1,1}).
+-define( startTime, {0,0,0}).
 
 %%--------------------------------------------------------------------
 %% @doc:	Parses dates autodetecting one of formats specified in standard
@@ -257,7 +259,7 @@ parse_date(String) ->
     {ok,LexTokens,1} = iso8601_lexer:string( String),
     case iso8601_parser:parse(LexTokens) of
         {ok, {date, {_DetectedFormat, ParsingResult} }}  ->
-            apply_date_tokens({0,1,1},ParsingResult);
+            apply_date_tokens(?startDate,ParsingResult);
         {error,Info} ->
             throw({error, {failed_to_parse,Info}})
     end.
@@ -283,7 +285,7 @@ parse_date(String, Format) ->
         {ok, {date, {DetectedFormat, ParsingResult} }}  ->
             if
                 DetectedFormat =:= Format ->
-                    apply_date_tokens({0,1,1},ParsingResult);
+                    apply_date_tokens(?startDate,ParsingResult);
                 true ->
                     throw({error, {wrong_format,DetectedFormat}})
             end;
@@ -411,17 +413,17 @@ parse_time( Value ) ->
 	parse_time( "T" ++ Value ).
 
 build_moment({time, {_Format,Tokens}}) ->
-		apply_tokens({0,1,1},{0,0,0},0,Tokens);
+		apply_tokens(?startDate,?startTime,0,Tokens);
 build_moment({date, {_Format,Tokens}}) ->
-		apply_tokens({0,1,1},{0,0,0},0,Tokens);
+		apply_tokens(?startDate,?startTime,0,Tokens);
 build_moment({localtime, {_TimeFormat,TimeTokens}, {_TZFormat, TZTokens}}) ->
-		{Date,Time,Micro}=apply_tokens({0,1,1},{0,0,0},0,TimeTokens),
+		{Date,Time,Micro}=apply_tokens(?startDate,?startTime,0,TimeTokens),
 		apply_tokens(Date,Time,Micro,TZTokens);
 build_moment({datetime, {_DateFormat,DateTokens}, {_TimeFormat, TimeTokens}}) ->
-		{Date,Date,Micro}=apply_tokens({0,1,1},{0,0,0},0,DateTokens),
+		{Date,Date,Micro}=apply_tokens(?startDate,?startTime,0,DateTokens),
 		apply_tokens(Date,Date,Micro,TimeTokens);
 build_moment({datetime_local, {_DateFormat,DateTokens}, {_TimeFormat, TimeTokens},{_TZFormat, TZTokens}}) ->
-		{Date,Date,Micro}=apply_tokens({0,1,1},{0,0,0},0,DateTokens),
+		{Date,Date,Micro}=apply_tokens(?startDate,?startTime,0,DateTokens),
 		{Date2,Date2,Micro2}=apply_tokens(Date,Date,Micro,TimeTokens),
 		apply_tokens(Date2,Date2,Micro2,TZTokens);
 build_moment(Unknown) ->
