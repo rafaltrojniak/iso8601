@@ -275,10 +275,10 @@
 %
 
 parse_date_test() ->
-    Input   = iso8601_phases:get_parse_date_stage(calendar_century_1, input),
-    Lexer   = iso8601_phases:get_parse_date_stage(calendar_century_1, lexer),
-    Parser  = iso8601_phases:get_parse_date_stage(calendar_century_1, parser),
-    Value   = iso8601_phases:get_parse_date_stage(calendar_century_1, value),
+    Input   = iso8601_phases:get_date(calendar_century_1, input),
+    Lexer   = iso8601_phases:get_date(calendar_century_1, lexer),
+    Parser  = iso8601_phases:get_date(calendar_century_1, parser),
+    Value   = iso8601_phases:get_date(calendar_century_1, value),
     meck:new(iso8601_lexer),
     meck:new(iso8601_parser),
     meck:new(iso8601,[passthrough]),
@@ -295,10 +295,10 @@ parse_date_test() ->
     ok.
 
 parse_date_format_test() ->
-    Input   = iso8601_phases:get_parse_date_stage(calendar_century_1, input),
-    Lexer   = iso8601_phases:get_parse_date_stage(calendar_century_1, lexer),
-    Parser  = iso8601_phases:get_parse_date_stage(calendar_century_1, parser),
-    Value   = iso8601_phases:get_parse_date_stage(calendar_century_1, value),
+    Input   = iso8601_phases:get_date(calendar_century_1, input),
+    Lexer   = iso8601_phases:get_date(calendar_century_1, lexer),
+    Parser  = iso8601_phases:get_date(calendar_century_1, parser),
+    Value   = iso8601_phases:get_date(calendar_century_1, value),
     Format  = element(1,element(2,Parser)),
     meck:new(iso8601_lexer),
     meck:new(iso8601_parser),
@@ -318,74 +318,74 @@ parse_date_format_test() ->
 apply_date_tokens_test_() ->
 	[
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_century_1, value),
+            iso8601_phases:get_date(calendar_century_1, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(calendar_century_1, parser))))),
+                element(2,element(2,iso8601_phases:get_date(calendar_century_1, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_century_2, value),
+            iso8601_phases:get_date(calendar_century_2, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(calendar_century_2, parser))))),
+                element(2,element(2,iso8601_phases:get_date(calendar_century_2, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_year_1, value),
+            iso8601_phases:get_date(calendar_year_1, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(calendar_year_1, parser))))),
+                element(2,element(2,iso8601_phases:get_date(calendar_year_1, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_year_2, value),
+            iso8601_phases:get_date(calendar_year_2, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(calendar_year_2, parser))))),
+                element(2,element(2,iso8601_phases:get_date(calendar_year_2, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_month_1, value),
+            iso8601_phases:get_date(calendar_month_1, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(calendar_month_1, parser))))),
+                element(2,element(2,iso8601_phases:get_date(calendar_month_1, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_month_2, value),
+            iso8601_phases:get_date(calendar_month_2, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(calendar_month_2, parser))))),
+                element(2,element(2,iso8601_phases:get_date(calendar_month_2, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_1, value),
+            iso8601_phases:get_date(calendar_1, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(calendar_1, parser))))),
+                element(2,element(2,iso8601_phases:get_date(calendar_1, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_2, value),
+            iso8601_phases:get_date(calendar_2, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(calendar_2, parser))))),
+                element(2,element(2,iso8601_phases:get_date(calendar_2, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(ordinal_1, value),
+            iso8601_phases:get_date(ordinal_1, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(ordinal_1, parser))))),
+                element(2,element(2,iso8601_phases:get_date(ordinal_1, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(ordinal_2, value),
+            iso8601_phases:get_date(ordinal_2, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(ordinal_2, parser))))),
+                element(2,element(2,iso8601_phases:get_date(ordinal_2, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(week, value),
+            iso8601_phases:get_date(week, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(week, parser))))),
+                element(2,element(2,iso8601_phases:get_date(week, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(week_extended, value),
+            iso8601_phases:get_date(week_extended, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(week_extended, parser))))),
+                element(2,element(2,iso8601_phases:get_date(week_extended, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(weekday, value),
+            iso8601_phases:get_date(weekday, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(weekday, parser))))),
+                element(2,element(2,iso8601_phases:get_date(weekday, parser))))),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(weekday_extended, value),
+            iso8601_phases:get_date(weekday_extended, value),
             iso8601:apply_date_tokens({0,1,1},
-                element(2,element(2,iso8601_phases:get_parse_date_stage(weekday_extended, parser))))),
+                element(2,element(2,iso8601_phases:get_date(weekday_extended, parser))))),
 
         ?_assertEqual({13,2,13},iso8601:apply_date_tokens({13,2,13},[]) )
     ].
@@ -393,134 +393,198 @@ apply_date_tokens_test_() ->
 format_date_test_() ->
     [
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_extend_1, input),
+            iso8601_phases:get_date(calendar_extend_1, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(calendar_extend_1,value)
+                iso8601_phases:get_date(calendar_extend_1,value)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_century_1, input),
+            iso8601_phases:get_date(calendar_century_1, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(calendar_century_1,value),
-                iso8601_phases:get_parse_date_stage(calendar_century_1, format)
+                iso8601_phases:get_date(calendar_century_1,value),
+                iso8601_phases:get_date(calendar_century_1, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_century_2, input),
+            iso8601_phases:get_date(calendar_century_2, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(calendar_century_2,value),
-                iso8601_phases:get_parse_date_stage(calendar_century_2, format)
+                iso8601_phases:get_date(calendar_century_2,value),
+                iso8601_phases:get_date(calendar_century_2, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_year_1, input),
+            iso8601_phases:get_date(calendar_year_1, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(calendar_year_1,value),
-                iso8601_phases:get_parse_date_stage(calendar_year_1, format)
+                iso8601_phases:get_date(calendar_year_1,value),
+                iso8601_phases:get_date(calendar_year_1, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_year_2, input),
+            iso8601_phases:get_date(calendar_year_2, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(calendar_year_2,value),
-                iso8601_phases:get_parse_date_stage(calendar_year_2, format)
+                iso8601_phases:get_date(calendar_year_2,value),
+                iso8601_phases:get_date(calendar_year_2, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_month_1, input),
+            iso8601_phases:get_date(calendar_month_1, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(calendar_month_1,value),
-                iso8601_phases:get_parse_date_stage(calendar_month_1, format)
+                iso8601_phases:get_date(calendar_month_1,value),
+                iso8601_phases:get_date(calendar_month_1, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_month_2, input),
+            iso8601_phases:get_date(calendar_month_2, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(calendar_month_2,value),
-                iso8601_phases:get_parse_date_stage(calendar_month_2, format)
+                iso8601_phases:get_date(calendar_month_2,value),
+                iso8601_phases:get_date(calendar_month_2, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_1, input),
+            iso8601_phases:get_date(calendar_1, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(calendar_1,value),
-                iso8601_phases:get_parse_date_stage(calendar_1, format)
+                iso8601_phases:get_date(calendar_1,value),
+                iso8601_phases:get_date(calendar_1, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_2, input),
+            iso8601_phases:get_date(calendar_2, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(calendar_2,value),
-                iso8601_phases:get_parse_date_stage(calendar_2, format)
+                iso8601_phases:get_date(calendar_2,value),
+                iso8601_phases:get_date(calendar_2, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_extend_1, input),
+            iso8601_phases:get_date(calendar_extend_1, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(calendar_extend_1,value),
-                iso8601_phases:get_parse_date_stage(calendar_extend_1, format)
+                iso8601_phases:get_date(calendar_extend_1,value),
+                iso8601_phases:get_date(calendar_extend_1, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(calendar_extend_2, input),
+            iso8601_phases:get_date(calendar_extend_2, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(calendar_extend_2,value),
-                iso8601_phases:get_parse_date_stage(calendar_extend_2, format)
+                iso8601_phases:get_date(calendar_extend_2,value),
+                iso8601_phases:get_date(calendar_extend_2, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(ordinal_1, input),
+            iso8601_phases:get_date(ordinal_1, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(ordinal_1,value),
-                iso8601_phases:get_parse_date_stage(ordinal_1, format)
+                iso8601_phases:get_date(ordinal_1,value),
+                iso8601_phases:get_date(ordinal_1, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(ordinal_2, input),
+            iso8601_phases:get_date(ordinal_2, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(ordinal_2,value),
-                iso8601_phases:get_parse_date_stage(ordinal_2, format)
+                iso8601_phases:get_date(ordinal_2,value),
+                iso8601_phases:get_date(ordinal_2, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(ordinal_extended_1, input),
+            iso8601_phases:get_date(ordinal_extended_1, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(ordinal_extended_1,value),
-                iso8601_phases:get_parse_date_stage(ordinal_extended_1, format)
+                iso8601_phases:get_date(ordinal_extended_1,value),
+                iso8601_phases:get_date(ordinal_extended_1, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(ordinal_extended_2, input),
+            iso8601_phases:get_date(ordinal_extended_2, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(ordinal_extended_2,value),
-                iso8601_phases:get_parse_date_stage(ordinal_extended_2, format)
+                iso8601_phases:get_date(ordinal_extended_2,value),
+                iso8601_phases:get_date(ordinal_extended_2, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(week, input),
+            iso8601_phases:get_date(week, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(week,value),
-                iso8601_phases:get_parse_date_stage(week, format)
+                iso8601_phases:get_date(week,value),
+                iso8601_phases:get_date(week, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(week_extended, input),
+            iso8601_phases:get_date(week_extended, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(week_extended,value),
-                iso8601_phases:get_parse_date_stage(week_extended, format)
+                iso8601_phases:get_date(week_extended,value),
+                iso8601_phases:get_date(week_extended, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(weekday, input),
+            iso8601_phases:get_date(weekday, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(weekday,value),
-                iso8601_phases:get_parse_date_stage(weekday, format)
+                iso8601_phases:get_date(weekday,value),
+                iso8601_phases:get_date(weekday, format)
             )),
 
         ?_assertEqual(
-            iso8601_phases:get_parse_date_stage(weekday_extended, input),
+            iso8601_phases:get_date(weekday_extended, input),
             iso8601:format_date(
-                iso8601_phases:get_parse_date_stage(weekday_extended,value),
-                iso8601_phases:get_parse_date_stage(weekday_extended, format)
+                iso8601_phases:get_date(weekday_extended,value),
+                iso8601_phases:get_date(weekday_extended, format)
             ))
+    ].
+
+apply_time_tokens_test_() ->
+	[
+?_assertEqual(
+    iso8601_phases:get_time(general_1,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_1,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_2,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_2,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_extended_1,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_extended_1,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_extended_2,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_extended_2,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_extended_frac_1,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_extended_frac_1,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_extended_frac_2,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_extended_frac_2,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_frac_1,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_frac_1,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_frac_2,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_frac_2,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_hour_1,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_hour_1,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_hour_2,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_hour_2,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_hour_frac_1,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_hour_frac_1,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_hour_frac_2,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_hour_frac_2,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_minute_1,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_minute_1,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_minute_2,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_minute_2,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_minute_extended_1,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_minute_extended_1,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_minute_extended_2,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_minute_extended_2,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_minute_extended_frac_1,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_minute_extended_frac_1,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_minute_extended_frac_2,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_minute_extended_frac_2,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_minute_frac_1,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_minute_frac_1,parser)))))),
+?_assertEqual(
+    iso8601_phases:get_time(general_minute_frac_2,value),
+    iso8601:apply_time_tokens({0,0,0},0,element(2,element(2,element(2,iso8601_phases:get_time(general_minute_frac_2,parser))))))
     ].
