@@ -41,12 +41,12 @@ parse_parser_test_() ->
 			iso8601_parser:parse(iso8601_phases:get_parse_date_stage(ordinal_extended_1,lexer))),
 		?_assertEqual({ok,iso8601_phases:get_parse_date_stage(ordinal_extended_2,parser)},
 			iso8601_parser:parse(iso8601_phases:get_parse_date_stage(ordinal_extended_2,lexer))),
-		?_assertEqual({ok,iso8601_phases:get_parse_date_stage(ordinal_week,parser)},
-			iso8601_parser:parse(iso8601_phases:get_parse_date_stage(ordinal_week,lexer))),
-		?_assertEqual({ok,iso8601_phases:get_parse_date_stage(ordinal_weekday,parser)},
-			iso8601_parser:parse(iso8601_phases:get_parse_date_stage(ordinal_weekday,lexer))),
-		?_assertEqual({ok,iso8601_phases:get_parse_date_stage(ordinal_weekday_extended,parser)},
-			iso8601_parser:parse(iso8601_phases:get_parse_date_stage(ordinal_weekday_extended,lexer))),
-		?_assertEqual({ok,iso8601_phases:get_parse_date_stage(ordinal_week_extended,parser)},
-			iso8601_parser:parse(iso8601_phases:get_parse_date_stage(ordinal_week_extended,lexer)))
+		?_assertEqual({ok,iso8601_phases:get_parse_date_stage(week,parser)},
+			iso8601_parser:parse(iso8601_phases:get_parse_date_stage(week,lexer))),
+		?_assertEqual({ok,iso8601_phases:get_parse_date_stage(weekday,parser)},
+			iso8601_parser:parse(iso8601_phases:get_parse_date_stage(weekday,lexer))),
+		?_assertEqual({ok,iso8601_phases:get_parse_date_stage(weekday_extended,parser)},
+			iso8601_parser:parse(iso8601_phases:get_parse_date_stage(weekday_extended,lexer))),
+		?_assertEqual({ok,iso8601_phases:get_parse_date_stage(week_extended,parser)},
+			iso8601_parser:parse(iso8601_phases:get_parse_date_stage(week_extended,lexer)))
     ].

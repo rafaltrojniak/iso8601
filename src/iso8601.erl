@@ -19,6 +19,12 @@
 		parse_localtime/2
 	]).
 
+%% Internal
+-export([
+		apply_date_tokens/2,
+		apply_time_tokens/3
+	]).
+
 -export_type([
 		date_format/0,
 		time_format/0,
@@ -588,13 +594,13 @@ apply_date_tokens(_,[Element|_]) ->
 apply_date_tokens(Date,[]) ->
     Date.
 
-apply_time_tokens(Date,{_,M,S},U,[{hour,H}|Elements]) ->
-	apply_time_tokens(Date,{H,M,S},U,Elements);
-apply_time_tokens(Date,{H,_,S},U,[{minute,M}|Elements]) ->
-	apply_time_tokens(Date,{H,M,S},U,Elements);
-apply_time_tokens(Date,{H,M,_},U,[{second,S}|Elements]) ->
-	apply_time_tokens(Date,{H,M,S},U,Elements);
-apply_time_tokens(Date,OldTime,OldU,[{frac,Base,Numbers}|Elements]) ->
+apply_time_tokens({_,M,S},U,[{hour,H}|Elements]) ->
+	apply_time_tokens({H,M,S},U,Elements);
+apply_time_tokens({H,_,S},U,[{minute,M}|Elements]) ->
+	apply_time_tokens({H,M,S},U,Elements);
+apply_time_tokens({H,M,_},U,[{second,S}|Elements]) ->
+	apply_time_tokens({H,M,S},U,Elements);
+apply_time_tokens(OldTime,OldU,[{frac,Base,Numbers}|Elements]) ->
 	Seconds=list_to_integer(Numbers),
 	SumMicroseconds= OldU + Base *
 	if
@@ -618,11 +624,11 @@ apply_time_tokens(Date,OldTime,OldU,[{frac,Base,Numbers}|Elements]) ->
 						calendar:time_to_seconds( OldTime)
 						+ DiffSeconds
 					 ),
-	apply_time_tokens(Date,NewTime,Microseconds,Elements);
-apply_time_tokens(_,_,_,[Element|_]) ->
+	apply_time_tokens(NewTime,Microseconds,Elements);
+apply_time_tokens(_,_,[Element|_]) ->
 	throw({unknown_token,Element});
-apply_time_tokens(Date,T,U,[]) ->
-	{Date,T,U}.
+apply_time_tokens(T,U,[]) ->
+	{T,U}.
 
 
 check_week_number(Y,Week) ->

@@ -27,7 +27,7 @@ init_dialyzer:
 	dialyzer --build_plt --apps erts kernel stdlib mnesia
 
 eunit: compile
-	./rebar eunit
+	./rebar eunit skip_deps=true
 
 clean:
 	$(RM) $(COMPILE_FILES) src/*~
