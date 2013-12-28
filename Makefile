@@ -29,6 +29,7 @@ init_dialyzer:
 eunit: compile
 	./rebar eunit skip_deps=true
 
+
 clean:
 	$(RM) $(COMPILE_FILES) src/*~
 	./rebar clean
