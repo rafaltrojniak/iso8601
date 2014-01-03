@@ -12,12 +12,10 @@
 %% API
 -export([
     parse_date/1,
-    parse_date/2,
     format_date/1,
     format_date/2,
     parse_time/1,
-    parse_time/2,
-    parse_localtime/2,
+    parse_localtime/1,
     apply_timezone_tokens/2
 	]).
 
@@ -151,47 +149,18 @@
 %% @end
 %%--------------------------------------------------------------------
 
--spec(parse_date(Date::binary()|nonempty_string()) -> Date::calendar:date()).
+-spec(parse_date(Date::binary()|nonempty_string()) -> {Date::calendar:date(),Format::date_format()}).
 parse_date(String) when is_binary(String) ->
 	parse_date(binary_to_list(String));
 parse_date(String) ->
     {ok,LexTokens,1} = iso8601_lexer:string( String),
     case iso8601_parser:parse(LexTokens) of
-        {ok, {date, {_DetectedFormat, ParsingResult} }}  ->
-            apply_date_tokens(?startDate,ParsingResult);
-        {error,Info} ->
-            throw({error, {failed_to_parse,Info}})
-    end.
-
-
-
-%%--------------------------------------------------------------------
-%% @doc:	Parses dates in one of formats specified in standard
-%%
-%% This function checks if string is properly formated according to specified format.
-%% @end
-%%--------------------------------------------------------------------
-
--spec(parse_date(Date::binary()|nonempty_string(), Format::date_format()) -> Date::calendar:date()).
-
-parse_date(Date, Format)
-		when is_binary(Date) andalso is_atom(Format) ->
-	parse_date(binary_to_list(Date), Format);
-parse_date(String, Format) ->
-    {ok,LexTokens,1} = iso8601_lexer:string( String),
-    case iso8601_parser:parse(LexTokens) of
         {ok, {date, {DetectedFormat, ParsingResult} }}  ->
-            if
-                DetectedFormat =:= Format ->
-                    apply_date_tokens(?startDate,ParsingResult);
-                true ->
-                    throw({error, {wrong_format,DetectedFormat}})
-            end;
+            Date=apply_date_tokens(?startDate,ParsingResult),
+            {Date, DetectedFormat};
         {error,Info} ->
             throw({error, {failed_to_parse,Info}})
     end.
-
-
 
 %%--------------------------------------------------------------------
 %% @equiv format_date(Date,calendar_extended)
@@ -300,34 +269,17 @@ format_date(Junk, _Type) ->
 %%--------------------------------------------------------------------
 
 -spec(parse_time(Value::nonempty_string() )
-			-> {Time::calendar:time(),MicroSec :: non_neg_integer()}).
+			-> {{Time::calendar:time(),MicroSec :: non_neg_integer()},Format::time_format()}).
 
 parse_time("T" ++ Value ) ->
 	{ok,LexTokens,1} = iso8601_lexer:string("T" ++ Value),
     case iso8601_parser:parse(LexTokens) of
-        {ok, {time, {_DetectedFormat, ParsingResult} }}  ->
-            apply_time_tokens(?startTime,0 ,ParsingResult);
-        {error,Info} ->
-            throw({error, {failed_to_parse,Info}})
-    end.
-
--spec(parse_time(Value::nonempty_string() , Format::time_format())
-			-> {Time::calendar:time(),MicroSec :: non_neg_integer()}).
-
-parse_time("T" ++ Value ,Format) ->
-	{ok,LexTokens,1} = iso8601_lexer:string("T" ++ Value),
-    case iso8601_parser:parse(LexTokens) of
         {ok, {time, {DetectedFormat, ParsingResult} }}  ->
-            if
-                DetectedFormat =:= Format ->
-                    apply_time_tokens(?startTime,0 ,ParsingResult);
-                true ->
-                    throw({error, {wrong_format,DetectedFormat}})
-            end;
+            Time=apply_time_tokens(?startTime,0 ,ParsingResult),
+            {Time,DetectedFormat};
         {error,Info} ->
             throw({error, {failed_to_parse,Info}})
     end.
-
 
 apply_date_tokens({_,M,D},[{year,Year}|Elements]) ->
     apply_date_tokens({Year,M,D},Elements);
@@ -451,26 +403,20 @@ check_week_number(Y,Week) ->
 %% @end
 %%--------------------------------------------------------------------
 
--spec(parse_localtime(Value::nonempty_string() ,Format::time_format())
-			-> {Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()}).
+-spec(parse_localtime(Value::nonempty_string())
+			-> {{Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()},{TimeFormat::time_format(),TZFormat::timezone_format()}}).
 
-parse_localtime("T" ++ Value, Format ) ->
+parse_localtime("T" ++ Value) ->
 	{ok,LexTokens,1} = iso8601_lexer:string("T" ++ Value),
     case iso8601_parser:parse(LexTokens) of
         {ok,
             {localtime,
-                {DetectedFormat, ParsingResult},
-                {_TZFormat, Direction, TZTokens}}
+                {TimeFormat, ParsingResult},
+                {TZFormat, Direction, TZTokens}}
         }  ->
-            if
-                DetectedFormat =:= Format ->
-                    {Time, Usec} = apply_time_tokens(?startTime,0 ,ParsingResult),
-                    %% FIXME apply zone
-                    TZ=apply_timezone_tokens( Direction, TZTokens),
-                    {Time, Usec, TZ};
-                true ->
-                    throw({error, {wrong_format,DetectedFormat}})
-            end;
+                {Time, Usec} = apply_time_tokens(?startTime,0 ,ParsingResult),
+                TZ=apply_timezone_tokens( Direction, TZTokens),
+                {{Time, Usec, TZ},{TimeFormat,TZFormat}};
         {error,Info} ->
             throw({error, {failed_to_parse,Info}})
     end.
