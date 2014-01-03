@@ -991,7 +991,7 @@ yeccpars2_36_(__Stack0) ->
 yeccpars2_37_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
-   { timezone , add , [ ] }
+   { utc , add , [ ] }
   end | __Stack].
 
 -compile({inline,yeccpars2_38_/1}).
@@ -999,7 +999,7 @@ yeccpars2_37_(__Stack0) ->
 yeccpars2_38_(__Stack0) ->
  [__2,__1 | __Stack] = __Stack0,
  [begin
-   { timezone , __1 , [ __2 ] }
+   { hour , __1 , [ __2 ] }
   end | __Stack].
 
 -compile({inline,yeccpars2_39_/1}).
@@ -1007,7 +1007,7 @@ yeccpars2_38_(__Stack0) ->
 yeccpars2_39_(__Stack0) ->
  [__3,__2,__1 | __Stack] = __Stack0,
  [begin
-   { timezone , __1 , [ __2 , __3 ] }
+   { minute , __1 , [ __2 , __3 ] }
   end | __Stack].
 
 -compile({inline,yeccpars2_41_/1}).
@@ -1015,7 +1015,7 @@ yeccpars2_39_(__Stack0) ->
 yeccpars2_41_(__Stack0) ->
  [__4,__3,__2,__1 | __Stack] = __Stack0,
  [begin
-   { timezone , __1 , [ __2 , __4 ] }
+   { minute_extended , __1 , [ __2 , __4 ] }
   end | __Stack].
 
 -compile({inline,yeccpars2_42_/1}).

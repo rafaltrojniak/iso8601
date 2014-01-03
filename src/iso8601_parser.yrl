@@ -18,13 +18,13 @@ frac -> decimal frac
     : element(2,'$1') ++ '$2' .
 
 timezone -> timezone_utc
-    : {timezone,add,[]}.
+    : {utc,add,[]}.
 timezone -> timezone_type hour
-    : {timezone,'$1',['$2']}.
+    : {hour,'$1',['$2']}.
 timezone -> timezone_type hour minute
-    : {timezone,'$1',['$2','$3']}.
+    : {minute,'$1',['$2','$3']}.
 timezone -> timezone_type hour time_separator minute
-    : {timezone,'$1',['$2','$4']}.
+    : {minute_extended,'$1',['$2','$4']}.
 
 timezone_type  -> plus  : add.
 timezone_type  -> minus : sub.

@@ -11,13 +11,14 @@
 
 %% API
 -export([
-		parse_date/1,
-		parse_date/2,
-		format_date/1,
-		format_date/2,
-		parse_time/1,
-		parse_time/2,
-		parse_localtime/2
+    parse_date/1,
+    parse_date/2,
+    format_date/1,
+    format_date/2,
+    parse_time/1,
+    parse_time/2,
+    parse_localtime/2,
+    apply_timezone_tokens/2
 	]).
 
 %% Internal
@@ -29,7 +30,7 @@
 -export_type([
 		date_format/0,
 		time_format/0,
-		localtime_format/0
+        timezone_format/0
 	]).
 
 -type date_format() ::
@@ -85,8 +86,7 @@
 	general_extended_frac|
 	general_minute_frac|
 	general_minute_extended_frac|
-	general_hour_frac
-	.
+	general_hour_frac .
 %%
 %% Specifies time format to parse/produce
 %%
@@ -112,47 +112,29 @@
 %%	<dd> 4.2.2.4.a extended - Thh:mm,mm* - 23:05,12</dd>
 %% <dt>general_hour_frac</dt>
 %%	<dd> 4.2.2.4.b basic - Thh,hh* - 23,12</dd>
+%%</dl>
 %%
 
--type localtime_format() ::
-	general_tz|
-	general_extended_tz|
-	general_minute_tz|
-	general_minute_extended_tz|
-	general_hour_tz|
-	general_frac_tz|
-	general_extended_frac_tz|
-	general_minute_frac_tz|
-	general_minute_extended_frac_tz|
-	general_hour_frac_tz
-	.
-
+-type timezone_format() ::
+    utc|
+    hour|
+    minute|
+    minute_extended.
 %%
-%% Specifies time format to parse/produce including timezone
+%% Specifies timezone format
 %%
-%% TypeName - Section of the specification - Format - Example
 %% <dl>
-%% <dt>general_tz</dt>
-%%	<dd> 4.2.2.2 basic - Thhmmss+(Z|dd:dd) - 230550+01:00</dd>
-%% <dt>general_extended_tz</dt>
-%%	<dd> 4.2.2.2 extended - Thh:mm:ss+(Z|dd:dd) - 23:05:50+01:00</dd>
-%% <dt>general_minute_tz</dt>
-%%	<dd> 4.2.2.3.a basic - Thhmm+(Z|dd:dd) - 2305+01:00</dd>
-%% <dt>general_minute_extended_tz</dt>
-%%	<dd> 4.2.2.3.a extended - Thh:mm+(Z|dd:dd) - 23:05+01:00</dd>
-%% <dt>general_hour_tz</dt>
-%%	<dd> 4.2.2.3.b basic - Thh+(Z|dd:dd) - 23+01:00</dd>
-%% <dt>general_frac_tz</dt>
-%%	<dd> 4.2.2.4 basic - Thhmmss,ss*+(Z|dd:dd) - 230550,12+01:00</dd>
-%% <dt>general_extended_frac_tz</dt>
-%%	<dd> 4.2.2.4 extended - Thh:mm:ss,ss*+(Z|dd:dd) - 23:05:50,12+01:00</dd>
-%% <dt>general_minute_frac_tz</dt>
-%%	<dd> 4.2.2.4.a basic - Thhmm,mm*+(Z|dd:dd) - 2305,12+01:00</dd>
-%% <dt>general_minute_extended_frac_tz</dt>
-%%	<dd> 4.2.2.4.a extended - Thh:mm,mm*+(Z|dd:dd) - 23:05,12+01:00</dd>
-%% <dt>general_hour_frac_tz</dt>
-%%	<dd> 4.2.2.4.b basic - Thh,hh*+(Z|dd:dd) - 23,12+01:00</dd>
+%% <dt>utc</dt>
+%%	<dd> 4.2.4 - UTC  - Z - Z</dd>
+%% <dt>hour</dt>
+%%	<dd> 4.2.5.1 - hour - [+-]hh - +01</dd>
+%% <dt>minute</dt>
+%%	<dd> 4.2.5.1 - minute - [+-]hhmm - +0100</dd>
+%% <dt>minute</dt>
+%%	<dd> 4.2.5.1 - minute_extended - [+-]hh:mm - +01:00</dd>
+%%</dl>
 %%
+
 
 -type time_difference() :: {-12..12,0..59 }.
 
@@ -195,7 +177,6 @@ parse_date(String) ->
 parse_date(Date, Format)
 		when is_binary(Date) andalso is_atom(Format) ->
 	parse_date(binary_to_list(Date), Format);
-% Section 4.1.2.3 c - century
 parse_date(String, Format) ->
     {ok,LexTokens,1} = iso8601_lexer:string( String),
     case iso8601_parser:parse(LexTokens) of
@@ -347,18 +328,6 @@ parse_time("T" ++ Value ,Format) ->
             throw({error, {failed_to_parse,Info}})
     end.
 
-%build_moment({localtime, {_TimeFormat,TimeTokens}, {_TZFormat, TZTokens}}) ->
-%		{Date,Time,Micro}=apply_tokens(?startDate,?startTime,0,TimeTokens),
-%		apply_tokens(Date,Time,Micro,TZTokens);
-%build_moment({datetime, {_DateFormat,DateTokens}, {_TimeFormat, TimeTokens}}) ->
-%		{Date,Date,Micro}=apply_tokens(?startDate,?startTime,0,DateTokens),
-%		apply_tokens(Date,Date,Micro,TimeTokens);
-%build_moment({datetime_local, {_DateFormat,DateTokens}, {_TimeFormat, TimeTokens},{_TZFormat, TZTokens}}) ->
-%		{Date,Date,Micro}=apply_tokens(?startDate,?startTime,0,DateTokens),
-%		{Date2,Date2,Micro2}=apply_tokens(Date,Date,Micro,TimeTokens),
-%		apply_tokens(Date2,Date2,Micro2,TZTokens);
-%build_moment(Unknown) ->
-%	throw({error, {wrong_format,Unknown}}).
 
 apply_date_tokens({_,M,D},[{year,Year}|Elements]) ->
     apply_date_tokens({Year,M,D},Elements);
@@ -482,11 +451,47 @@ check_week_number(Y,Week) ->
 %% @end
 %%--------------------------------------------------------------------
 
--spec(parse_localtime(Format::localtime_format(), Value::nonempty_string() )
+-spec(parse_localtime(Value::nonempty_string() ,Format::time_format())
 			-> {Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()}).
 
-parse_localtime(Format, Value ) ->
-	throw({error, {wrong_format,{Format, Value}}}).
+parse_localtime("T" ++ Value, Format ) ->
+	{ok,LexTokens,1} = iso8601_lexer:string("T" ++ Value),
+    case iso8601_parser:parse(LexTokens) of
+        {ok,
+            {localtime,
+                {DetectedFormat, ParsingResult},
+                {_TZFormat, Direction, TZTokens}}
+        }  ->
+            if
+                DetectedFormat =:= Format ->
+                    {Time, Usec} = apply_time_tokens(?startTime,0 ,ParsingResult),
+                    %% FIXME apply zone
+                    TZ=apply_timezone_tokens( Direction, TZTokens),
+                    {Time, Usec, TZ};
+                true ->
+                    throw({error, {wrong_format,DetectedFormat}})
+            end;
+        {error,Info} ->
+            throw({error, {failed_to_parse,Info}})
+    end.
+
+%%--------------------------------------------------------------------
+%% @doc:    Builds timezone difference from tokens
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(apply_timezone_tokens(Direction::sub|add,Tokens::list()) -> integer()).
+apply_timezone_tokens(Direction, Tokens) ->
+  TZ=lists:foldl(
+    fun({hour,X},Val) -> Val+X*3600;
+    ({minute,X},Val) -> Val+X*60 end,
+    0,
+    Tokens),
+  case Direction of
+    sub -> TZ*-1;
+    add -> TZ
+  end.
+
 
 % Helper functions
 %
@@ -503,15 +508,5 @@ gregorian_days_of_iso_w01_1(Year) ->
 		true ->
 	D0101 + 7 - DOW + 1
 		end.
-
-%time_adjust_ret({{Hour,Minute,Sec},MicroSec},{HDif,MDif}) ->
-	%{{Hour+HDif,Minute+MDif,Sec},MicroSec,{HDif,MDif}}.
-
-%prepare_frac_time(Seconds, Frac, Base) ->
-%	{FracVal,[]}=string:to_float("0."++Frac),
-%	Diff=FracVal*Base,
-%	Time=calendar:seconds_to_time(Seconds + trunc(Diff)),
-%	{Time, round(Diff*1000000) rem 1000000}.
-
 
 %% vim: set ts=2 sw=2 ai invlist si cul nu:

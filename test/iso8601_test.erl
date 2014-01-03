@@ -461,3 +461,50 @@ parse_time_format_test() ->
     meck:unload(iso8601_lexer),
     meck:unload(iso8601_parser),
     ok.
+
+parse_localtime_format_test() ->
+    Input   = iso8601_phases:get_localtime(general_1, input),
+    Lexer   = iso8601_phases:get_localtime(general_1, lexer),
+    Parser  = iso8601_phases:get_localtime(general_1, parser),
+    Value   = iso8601_phases:get_localtime(general_1, value),
+    Format  = iso8601_phases:get_localtime(general_1, format),
+    LexTokens=element(2,Lexer),
+    Tokens  = element(2,element(2,element(2,Parser))),
+    meck:new(iso8601_lexer),
+    meck:new(iso8601_parser),
+    meck:new(iso8601,[passthrough]),
+    meck:expect(iso8601_lexer,string,fun(_Input) -> ?assertEqual(Input,_Input), Lexer end),
+    meck:expect(iso8601_parser,parse,fun(_Lexer) -> ?assertEqual(LexTokens,_Lexer), Parser end),
+    meck:expect(iso8601,apply_time_tokens,
+                fun(_Time,_UTime,_Tokens) ->
+                        ?assertEqual(_Time,{0,1,1}),
+                        ?assertEqual(_UTime,0),
+                        ?assertEqual(Tokens,_Tokens),Value end),
+    meck:expect(iso8601,apply_timezone_tokens,
+                fun(_Direction, _Tokens) ->
+                        ?assertEqual(_Direction, element(2,element(3,element(2,Parser)))),
+                        ?assertEqual(_Tokens, element(3,element(3,element(2,Parser)))),
+                        Value end),
+    ?assertEqual(Value,iso8601:parse_localtime(Input,Format)),
+    ?assert(meck:validate(iso8601_lexer)),
+    ?assert(meck:validate(iso8601_parser)),
+    ?assert(meck:validate(iso8601)),
+    meck:unload(iso8601),
+    meck:unload(iso8601_lexer),
+    meck:unload(iso8601_parser),
+    ok.
+
+
+apply_timezone_tokens_test_() ->
+    [
+        ?_assertEqual( 0, iso8601:apply_timezone_tokens(add,[{hour,0}]) ),
+        ?_assertEqual( 0, iso8601:apply_timezone_tokens(sub,[{hour,0}]) ),
+        ?_assertEqual( 3600, iso8601:apply_timezone_tokens(add,[{hour,1}]) ),
+        ?_assertEqual( -3600, iso8601:apply_timezone_tokens(sub,[{hour,1}]) ),
+        ?_assertEqual( 7200, iso8601:apply_timezone_tokens(add,[{hour,2}]) ),
+        ?_assertEqual( -7200, iso8601:apply_timezone_tokens(sub,[{hour,2}]) ),
+        ?_assertEqual( -7260, iso8601:apply_timezone_tokens(sub,[{hour,2},{minute,1}]) ),
+        ?_assertEqual( 4500, iso8601:apply_timezone_tokens(add,[{hour,1},{minute,15}]) ),
+        ?_assertEqual( -7200, iso8601:apply_timezone_tokens(sub,[{hour,2},{minute,0}]) ),
+        ?_assertEqual( 7200, iso8601:apply_timezone_tokens(add,[{hour,2},{minute,0}]) )
+    ].

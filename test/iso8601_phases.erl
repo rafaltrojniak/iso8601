@@ -7,23 +7,19 @@
 %%% Created :  czw gru 26 20:34:09 2013 by Rafał Trójniak
 %%%-------------------------------------------------------------------
 -module(iso8601_phases).
-
 %% API
--export([get_date/2, get_time/2, run_stages/0]).
+-export([get_date/2, get_time/2, get_localtime/2, gen_stages/0]).
 
-%%% API
-run_stages()  ->
+gen_stages()  ->
     lists:foreach(
   fun(X)  ->
     try
-  LexerResult = iso8601_lexer:string([$T|get_time(X,input)]),
+  LexerResult = iso8601_lexer:string(get_localtime(X,input)),
   ParseResult = iso8601_parser:parse(element(2,LexerResult )),
-  Result = iso8601:parse_time(get_time(X,input)),
-  io:format("get_time(~p, input)\t ->  \t~p;\n",[X,[$T|get_time(X,input)]]),
-  io:format("get_time(~p, format)\t ->  \t~p;\n",[X,get_time(X,format)]),
-  io:format("get_time(~p, lexer)\t ->  \t~p;\n",[X,LexerResult]),
-  io:format("get_time(~p, parser)\t ->  \t~p;\n",[X,ParseResult ]),
-  io:format("get_time(~p, value)\t ->  \t~p;\n",[X,Result])
+  io:format("get_localtime(~p, input)\t ->  \t~p;\n",[X,get_localtime(X,input)]),
+  io:format("get_localtime(~p, format)\t ->  \t~p;\n",[X,get_localtime(X,format)]),
+  io:format("get_localtime(~p, lexer)\t ->  \t~p;\n",[X,LexerResult]),
+  io:format("get_localtime(~p, parser)\t ->  \t~p;\n",[X,ParseResult ])
     catch
   error:_ ->  ok;
   throw:_ ->  ok;
@@ -31,26 +27,20 @@ run_stages()  ->
     end
   end,
     [
-        general_1 ,
-        general_2 ,
-        general_extended_1 ,
-        general_extended_2 ,
-        general_extended_frac_1 ,
-        general_extended_frac_2 ,
-        general_frac_1 ,
-        general_frac_2 ,
-        general_hour_1 ,
-        general_hour_2 ,
-        general_hour_frac_1 ,
-        general_hour_frac_2 ,
-        general_minute_1 ,
-        general_minute_2 ,
-        general_minute_extended_1 ,
-        general_minute_extended_2 ,
-        general_minute_extended_frac_1 ,
-        general_minute_extended_frac_2 ,
-        general_minute_frac_1 ,
-        general_minute_frac_2 
+general_1,
+general_2,
+general_3,
+general_4,
+general_5,
+general_extended_1,
+general_extended_frac_1,
+general_frac_1,
+general_hour_1,
+general_hour_frac_1,
+general_minute_1,
+general_minute_extended_1,
+general_minute_extended_frac_1,
+general_minute_frac_1
     ]
      ).
 
@@ -309,6 +299,7 @@ get_date(weekday_extended, format) ->  weekday_extended;
 get_date(Test, Stage) ->  throw({'Unknonwn test/stage',Test,Stage}).
 
 
+-spec(get_time(Test::atom(), Stage::input|lexer|parser|value|format )  ->  any()).
 get_time(general_1, input)       ->     "T230550";
 get_time(general_1, format)      ->     general;
 get_time(general_1, lexer)       ->     {ok,
@@ -698,6 +689,387 @@ get_time(general_minute_frac_2, value)   ->     {{23,5,7},200000};
 
 
 get_time(Test, Stage) ->  throw({'Unknonwn test/stage',Test,Stage}).
+
+
+-spec(get_localtime(Test::atom(), Stage::input|lexer|parser|value|format )  ->  any()).
+get_localtime(general_1, input)  ->     "T230550+0115";
+get_localtime(general_1, format)         ->     general;
+get_localtime(general_1, lexer)  ->     {ok,
+                                         [{time_designator,"T","T"},
+                                          {decimal,"2",2},
+                                          {decimal,"3",3},
+                                          {decimal,"0",0},
+                                          {decimal,"5",5},
+                                          {decimal,"5",5},
+                                          {decimal,"0",0},
+                                          {plus,"+","+"},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"1",1},
+                                          {decimal,"5",5}],
+                                         1};
+get_localtime(general_1, parser)         ->     {ok,
+                                                 {localtime,
+                                                  {general,
+                                                   [{hour,23},
+                                                    {minute,5},
+                                                    {second,50}]},
+                                                  {minute,add,
+                                                   [{hour,1},{minute,15}]}}};
+get_localtime(general_1, value)         ->     {{23,5,50},0,(1*60+15)*60};
+get_localtime(general_2, input)  ->     "T110501-1001";
+get_localtime(general_2, format)         ->     general;
+get_localtime(general_2, lexer)  ->     {ok,
+                                         [{time_designator,"T","T"},
+                                          {decimal,"1",1},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"5",5},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {minus,"-","-"},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1}],
+                                         1};
+get_localtime(general_2, parser)         ->     {ok,
+                                                 {localtime,
+                                                  {general,
+                                                   [{hour,11},
+                                                    {minute,5},
+                                                    {second,1}]},
+                                                  {minute,sub,
+                                                   [{hour,10},{minute,1}]}}};
+get_localtime(general_3, input)  ->     "T110501Z";
+get_localtime(general_3, format)         ->     general;
+get_localtime(general_3, lexer)  ->     {ok,
+                                         [{time_designator,"T","T"},
+                                          {decimal,"1",1},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"5",5},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {timezone_utc,"Z","Z"}],
+                                         1};
+get_localtime(general_3, parser)         ->     {ok,
+                                                 {localtime,
+                                                  {general,
+                                                   [{hour,11},
+                                                    {minute,5},
+                                                    {second,1}]},
+                                                  {utc,add,[]}}};
+get_localtime(general_4, input)  ->     "T110501-10";
+get_localtime(general_4, format)         ->     general;
+get_localtime(general_4, lexer)  ->     {ok,
+                                         [{time_designator,"T","T"},
+                                          {decimal,"1",1},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"5",5},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {minus,"-","-"},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0}],
+                                         1};
+get_localtime(general_4, parser)         ->     {ok,
+                                                 {localtime,
+                                                  {general,
+                                                   [{hour,11},
+                                                    {minute,5},
+                                                    {second,1}]},
+                                                  {hour,sub,[{hour,10}]}}};
+get_localtime(general_5, input)  ->     "T110501+05";
+get_localtime(general_5, format)         ->     general;
+get_localtime(general_5, lexer)  ->     {ok,
+                                         [{time_designator,"T","T"},
+                                          {decimal,"1",1},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"5",5},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {plus,"+","+"},
+                                          {decimal,"0",0},
+                                          {decimal,"5",5}],
+                                         1};
+get_localtime(general_5, parser)         ->     {ok,
+                                                 {localtime,
+                                                  {general,
+                                                   [{hour,11},
+                                                    {minute,5},
+                                                    {second,1}]},
+                                                  {hour,add,[{hour,5}]}}};
+get_localtime(general_extended_1, input)         ->     "T23:05:50+10:00";
+get_localtime(general_extended_1, format)        ->     general_extended;
+get_localtime(general_extended_1, lexer)         ->     {ok,
+                                                         [{time_designator,
+                                                           "T","T"},
+                                                          {decimal,"2",2},
+                                                          {decimal,"3",3},
+                                                          {time_separator,
+                                                           ":",":"},
+                                                          {decimal,"0",0},
+                                                          {decimal,"5",5},
+                                                          {time_separator,
+                                                           ":",":"},
+                                                          {decimal,"5",5},
+                                                          {decimal,"0",0},
+                                                          {plus,"+","+"},
+                                                          {decimal,"1",1},
+                                                          {decimal,"0",0},
+                                                          {time_separator,
+                                                           ":",":"},
+                                                          {decimal,"0",0},
+                                                          {decimal,"0",0}],
+                                                         1};
+get_localtime(general_extended_1, parser)        ->     {ok,
+                                                         {localtime,
+                                                          {general_extended,
+                                                           [{hour,23},
+                                                            {minute,5},
+                                                            {second,50}]},
+                                                          {minute_extended,add,
+                                                           [{hour,10},
+                                                            {minute,0}]}}};
+get_localtime(general_extended_frac_1, input)    ->     "T23:05:50,1212+10:00";
+get_localtime(general_extended_frac_1, format)   ->     general_extended_frac;
+get_localtime(general_extended_frac_1, lexer)    ->     {ok,
+                                                         [{time_designator,
+                                                           "T","T"},
+                                                          {decimal,"2",2},
+                                                          {decimal,"3",3},
+                                                          {time_separator,
+                                                           ":",":"},
+                                                          {decimal,"0",0},
+                                                          {decimal,"5",5},
+                                                          {time_separator,
+                                                           ":",":"},
+                                                          {decimal,"5",5},
+                                                          {decimal,"0",0},
+                                                          {frac_separator,
+                                                           ",",","},
+                                                          {decimal,"1",1},
+                                                          {decimal,"2",2},
+                                                          {decimal,"1",1},
+                                                          {decimal,"2",2},
+                                                          {plus,"+","+"},
+                                                          {decimal,"1",1},
+                                                          {decimal,"0",0},
+                                                          {time_separator,
+                                                           ":",":"},
+                                                          {decimal,"0",0},
+                                                          {decimal,"0",0}],
+                                                         1};
+get_localtime(general_extended_frac_1, parser)   ->     {ok,
+                                                         {localtime,
+                                                          {general_extended_frac,
+                                                           [{hour,23},
+                                                            {minute,5},
+                                                            {second,50},
+                                                            {frac,1,"1212"}]},
+                                                          {minute_extended,add,
+                                                           [{hour,10},
+                                                            {minute,0}]}}};
+get_localtime(general_frac_1, input)     ->     "T100301,12+1000";
+get_localtime(general_frac_1, format)    ->     general_frac;
+get_localtime(general_frac_1, lexer)     ->     {ok,
+                                                 [{time_designator,"T","T"},
+                                                  {decimal,"1",1},
+                                                  {decimal,"0",0},
+                                                  {decimal,"0",0},
+                                                  {decimal,"3",3},
+                                                  {decimal,"0",0},
+                                                  {decimal,"1",1},
+                                                  {frac_separator,",",","},
+                                                  {decimal,"1",1},
+                                                  {decimal,"2",2},
+                                                  {plus,"+","+"},
+                                                  {decimal,"1",1},
+                                                  {decimal,"0",0},
+                                                  {decimal,"0",0},
+                                                  {decimal,"0",0}],
+                                                 1};
+get_localtime(general_frac_1, parser)    ->     {ok,
+                                                 {localtime,
+                                                  {general_frac,
+                                                   [{hour,10},
+                                                    {minute,3},
+                                                    {second,1},
+                                                    {frac,1,"12"}]},
+                                                  {minute,add,
+                                                   [{hour,10},{minute,0}]}}};
+get_localtime(general_hour_1, input)     ->     "T23+1000";
+get_localtime(general_hour_1, format)    ->     general_hour;
+get_localtime(general_hour_1, lexer)     ->     {ok,
+                                                 [{time_designator,"T","T"},
+                                                  {decimal,"2",2},
+                                                  {decimal,"3",3},
+                                                  {plus,"+","+"},
+                                                  {decimal,"1",1},
+                                                  {decimal,"0",0},
+                                                  {decimal,"0",0},
+                                                  {decimal,"0",0}],
+                                                 1};
+get_localtime(general_hour_1, parser)    ->     {ok,
+                                                 {localtime,
+                                                  {general_hour,[{hour,23}]},
+                                                  {minute,add,
+                                                   [{hour,10},{minute,0}]}}};
+get_localtime(general_hour_frac_1, input)        ->     "T23,12+1000";
+get_localtime(general_hour_frac_1, format)       ->     general_hour_frac;
+get_localtime(general_hour_frac_1, lexer)        ->     {ok,
+                                                         [{time_designator,
+                                                           "T","T"},
+                                                          {decimal,"2",2},
+                                                          {decimal,"3",3},
+                                                          {frac_separator,
+                                                           ",",","},
+                                                          {decimal,"1",1},
+                                                          {decimal,"2",2},
+                                                          {plus,"+","+"},
+                                                          {decimal,"1",1},
+                                                          {decimal,"0",0},
+                                                          {decimal,"0",0},
+                                                          {decimal,"0",0}],
+                                                         1};
+get_localtime(general_hour_frac_1, parser)       ->     {ok,
+                                                         {localtime,
+                                                          {general_hour_frac,
+                                                           [{hour,23},
+                                                            {frac,3600,"12"}]},
+                                                          {minute,add,
+                                                           [{hour,10},
+                                                            {minute,0}]}}};
+get_localtime(general_minute_1, input)   ->     "T2305+1000";
+get_localtime(general_minute_1, format)  ->     general_minute;
+get_localtime(general_minute_1, lexer)   ->     {ok,
+                                                 [{time_designator,"T","T"},
+                                                  {decimal,"2",2},
+                                                  {decimal,"3",3},
+                                                  {decimal,"0",0},
+                                                  {decimal,"5",5},
+                                                  {plus,"+","+"},
+                                                  {decimal,"1",1},
+                                                  {decimal,"0",0},
+                                                  {decimal,"0",0},
+                                                  {decimal,"0",0}],
+                                                 1};
+get_localtime(general_minute_1, parser)  ->     {ok,
+                                                 {localtime,
+                                                  {general_minute,
+                                                   [{hour,23},{minute,5}]},
+                                                  {minute,add,
+                                                   [{hour,10},{minute,0}]}}};
+get_localtime(general_minute_extended_1, input)  ->     "T23:05+10:00";
+get_localtime(general_minute_extended_1, format)         ->     general_minute_extended;
+get_localtime(general_minute_extended_1, lexer)  ->     {ok,
+                                                         [{time_designator,
+                                                           "T","T"},
+                                                          {decimal,"2",2},
+                                                          {decimal,"3",3},
+                                                          {time_separator,
+                                                           ":",":"},
+                                                          {decimal,"0",0},
+                                                          {decimal,"5",5},
+                                                          {plus,"+","+"},
+                                                          {decimal,"1",1},
+                                                          {decimal,"0",0},
+                                                          {time_separator,
+                                                           ":",":"},
+                                                          {decimal,"0",0},
+                                                          {decimal,"0",0}],
+                                                         1};
+get_localtime(general_minute_extended_1, parser)         ->     {ok,
+                                                                 {localtime,
+                                                                  {general_minute_extended,
+                                                                   [{hour,23},
+                                                                    {minute,
+                                                                     5}]},
+                                                                  {minute_extended,
+                                                                   add,
+                                                                   [{hour,10},
+                                                                    {minute,
+                                                                     0}]}}};
+get_localtime(general_minute_extended_frac_1, input)     ->     "T10:05,12+10:00";
+get_localtime(general_minute_extended_frac_1, format)    ->     general_minute_extended_frac;
+get_localtime(general_minute_extended_frac_1, lexer)     ->     {ok,
+                                                                 [{time_designator,
+                                                                   "T","T"},
+                                                                  {decimal,
+                                                                   "1",1},
+                                                                  {decimal,
+                                                                   "0",0},
+                                                                  {time_separator,
+                                                                   ":",":"},
+                                                                  {decimal,
+                                                                   "0",0},
+                                                                  {decimal,
+                                                                   "5",5},
+                                                                  {frac_separator,
+                                                                   ",",","},
+                                                                  {decimal,
+                                                                   "1",1},
+                                                                  {decimal,
+                                                                   "2",2},
+                                                                  {plus,"+",
+                                                                   "+"},
+                                                                  {decimal,
+                                                                   "1",1},
+                                                                  {decimal,
+                                                                   "0",0},
+                                                                  {time_separator,
+                                                                   ":",":"},
+                                                                  {decimal,
+                                                                   "0",0},
+                                                                  {decimal,
+                                                                   "0",0}],
+                                                                 1};
+get_localtime(general_minute_extended_frac_1, parser)    ->     {ok,
+                                                                 {localtime,
+                                                                  {general_minute_extended_frac,
+                                                                   [{hour,10},
+                                                                    {minute,5},
+                                                                    {frac,60,
+                                                                     "12"}]},
+                                                                  {minute_extended,
+                                                                   add,
+                                                                   [{hour,10},
+                                                                    {minute,
+                                                                     0}]}}};
+get_localtime(general_minute_frac_1, input)      ->     "T1201,12+1000";
+get_localtime(general_minute_frac_1, format)     ->     general_minute_frac;
+get_localtime(general_minute_frac_1, lexer)      ->     {ok,
+                                                         [{time_designator,
+                                                           "T","T"},
+                                                          {decimal,"1",1},
+                                                          {decimal,"2",2},
+                                                          {decimal,"0",0},
+                                                          {decimal,"1",1},
+                                                          {frac_separator,
+                                                           ",",","},
+                                                          {decimal,"1",1},
+                                                          {decimal,"2",2},
+                                                          {plus,"+","+"},
+                                                          {decimal,"1",1},
+                                                          {decimal,"0",0},
+                                                          {decimal,"0",0},
+                                                          {decimal,"0",0}],
+                                                         1};
+get_localtime(general_minute_frac_1, parser)     ->     {ok,
+                                                         {localtime,
+                                                          {general_minute_frac,
+                                                           [{hour,12},
+                                                            {minute,1},
+                                                            {frac,60,"12"}]},
+                                                          {minute,add,
+                                                           [{hour,10},
+                                                            {minute,0}]}}};
+
+
+get_localtime(Test, Stage) ->  throw({'Unknonwn test/stage',Test,Stage}).
 
 
 %%--------------------------------------------------------------------

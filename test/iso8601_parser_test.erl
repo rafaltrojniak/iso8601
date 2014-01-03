@@ -94,3 +94,28 @@ parse_time_test_() ->
 ?_assertEqual(iso8601_phases:get_time(general_minute_frac_2,parser)
     ,iso8601_parser:parse(element(2,iso8601_phases:get_time(general_minute_frac_2,lexer))))
     ].
+
+parse_localtime_test_() ->
+    lists:map(
+        fun(X) ->
+            LexElements=element(2,iso8601_phases:get_localtime(X,lexer)),
+            ParserResult=iso8601_phases:get_localtime(X,parser),
+            ?_assertEqual(ParserResult
+                ,iso8601_parser:parse(LexElements))
+        end,
+    [
+        general_1,
+        general_2,
+        general_3,
+        general_4,
+        general_5,
+        general_extended_1,
+        general_extended_frac_1,
+        general_frac_1,
+        general_hour_1,
+        general_hour_frac_1,
+        general_minute_1,
+        general_minute_extended_1,
+        general_minute_extended_frac_1,
+        general_minute_frac_1
+    ]).
