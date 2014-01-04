@@ -153,13 +153,13 @@
 
 -spec(parse_date(Date::binary()|nonempty_string()) -> {Date::calendar:date(),Format::date_format()}).
 parse_date(String) when is_list(String) ->
-    {ok,LexTokens,1} = iso8601_lexer:string( String),
-    case iso8601_parser:parse(LexTokens) of
-        {ok, {date, {DetectedFormat, ParsingResult} }}  ->
+    case parse(String) of
+        {date,
+         {DetectedFormat, ParsingResult}}  ->
             Date=apply_date_tokens(?startDate,ParsingResult),
             {Date, DetectedFormat};
-        {error,Info} ->
-            throw({error, {failed_to_parse,Info}})
+        _Other ->
+            throw({error, {format_mismatch, element(1,_Other)}})
     end.
 
 %%--------------------------------------------------------------------
@@ -268,17 +268,17 @@ format_date(Junk, _Type) ->
 %% @end
 %%--------------------------------------------------------------------
 
--spec(parse_time(Value::nonempty_string() )
+-spec(parse_time(String::nonempty_string() )
 			-> {{Time::calendar:time(),MicroSec :: non_neg_integer()},Format::time_format()}).
 
-parse_time("T" ++ Value ) ->
-	{ok,LexTokens,1} = iso8601_lexer:string("T" ++ Value),
-    case iso8601_parser:parse(LexTokens) of
-        {ok, {time, {DetectedFormat, ParsingResult} }}  ->
+parse_time(String ) when is_list(String) ->
+    case parse(String) of
+        {time,
+         {DetectedFormat, ParsingResult}}  ->
             Time=apply_time_tokens(?startTime,0 ,ParsingResult),
             {Time,DetectedFormat};
-        {error,Info} ->
-            throw({error, {failed_to_parse,Info}})
+        _Other ->
+            throw({error, {format_mismatch, element(1,_Other)}})
     end.
 
 apply_date_tokens({_,M,D},[{year,Year}|Elements]) ->
@@ -334,7 +334,7 @@ apply_date_tokens({Year,_,_},[{yearday,Day}|Elements]) ->
             -> throw({error, {day_too_big, {Year, Day}}});
         {_, Day} when Day<1
             -> throw({error, {day_too_small, {Year, Day}}});
-        _ -> ok
+        _Other -> ok
     end,
     Date=
         calendar:gregorian_days_to_date(
@@ -403,22 +403,19 @@ check_week_number(Y,Week) ->
 %% @end
 %%--------------------------------------------------------------------
 
--spec(parse_localtime(Value::nonempty_string())
+-spec(parse_localtime(String::nonempty_string())
 			-> {{Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()},{TimeFormat::time_format(),TZFormat::timezone_format()}}).
 
-parse_localtime("T" ++ Value) ->
-	{ok,LexTokens,1} = iso8601_lexer:string("T" ++ Value),
-    case iso8601_parser:parse(LexTokens) of
-        {ok,
-            {localtime,
-                {TimeFormat, ParsingResult},
-                {TZFormat, Direction, TZTokens}}
-        }  ->
+parse_localtime(String) when is_list(String) ->
+    case parse(String) of
+        {localtime,
+            {TimeFormat, ParsingResult},
+            {TZFormat, Direction, TZTokens}} ->
                 {Time, Usec} = apply_time_tokens(?startTime,0 ,ParsingResult),
                 TZ=apply_timezone_tokens( Direction, TZTokens),
                 {{Time, Usec, TZ},{TimeFormat,TZFormat}};
-        {error,Info} ->
-            throw({error, {failed_to_parse,Info}})
+        _Other ->
+            throw({error, {format_mismatch, element(1,_Other)}})
     end.
 
 %%--------------------------------------------------------------------
@@ -426,53 +423,47 @@ parse_localtime("T" ++ Value) ->
 %% @end
 %%--------------------------------------------------------------------
 
--spec(parse_datetime(Value::nonempty_string())
+-spec(parse_datetime(String::nonempty_string())
       -> {
             {Date::calendar:date(), Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()},
             {DateFormat::date_format(),TimeFormat::time_format()}
         }).
 
-parse_datetime(Value) when is_list(Value)->
-	{ok,LexTokens,1} = iso8601_lexer:string(Value),
-    case iso8601_parser:parse(LexTokens) of
-        {ok,
-            {datetime,
-                {DateFormat, DateTokens},
-                {TimeFormat, TimeTokens}}
-        }  ->
+parse_datetime(String) when is_list(String)->
+    case parse(String) of
+        {datetime,
+            {DateFormat, DateTokens},
+            {TimeFormat, TimeTokens}} ->
                 Date=apply_date_tokens(?startDate,DateTokens),
                 {Time, Usec} = apply_time_tokens(?startTime,0 ,TimeTokens),
                 {{Date,Time, Usec},{DateFormat,TimeFormat}};
-        {error,Info} ->
-            throw({error, {failed_to_parse,Info}})
+        _Other ->
+            throw({error, {format_mismatch, element(1,_Other)}})
     end.
 %%--------------------------------------------------------------------
 %% @doc:	Parses local datetime (date + time + timezone)
 %% @end
 %%--------------------------------------------------------------------
 
--spec(parse_localdatetime(Value::nonempty_string())
+-spec(parse_localdatetime(String::nonempty_string())
       -> {
             {Date::calendar:date(), Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()},
             {DateFormat::date_format(),TimeFormat::time_format(),TZFormat::timezone_format()}
         }).
 
-parse_localdatetime(Value) when is_list(Value) ->
-	{ok,LexTokens,1} = iso8601_lexer:string( Value),
-    case iso8601_parser:parse(LexTokens) of
-        {ok,
-            {datetime_local,
-                {DateFormat, DateTokens},
-                {TimeFormat, TimeTokens},
-                {TZFormat, Direction, TZTokens}
-            }
-        }  ->
-                Date=apply_date_tokens(?startDate,DateTokens),
-                {Time, Usec} = apply_time_tokens(?startTime,0 ,TimeTokens),
-                TZ=apply_timezone_tokens( Direction, TZTokens),
-                {{Date,Time, Usec,TZ},{DateFormat,TimeFormat,TZFormat}};
-        {error,Info} ->
-            throw({error, {failed_to_parse,Info}})
+parse_localdatetime(String) when is_list(String) ->
+    case parse(String) of
+        {datetime_local,
+            {DateFormat, DateTokens},
+            {TimeFormat, TimeTokens},
+            {TZFormat, Direction, TZTokens}
+        } ->
+            Date=apply_date_tokens(?startDate,DateTokens),
+            {Time, Usec} = apply_time_tokens(?startTime,0 ,TimeTokens),
+            TZ=apply_timezone_tokens( Direction, TZTokens),
+            {{Date,Time, Usec,TZ},{DateFormat,TimeFormat,TZFormat}};
+        _Other ->
+            throw({error, {format_mismatch, element(1,_Other)}})
     end.
 
 
@@ -493,6 +484,18 @@ apply_timezone_tokens(Direction, Tokens) ->
     add -> TZ
   end.
 
+parse(String) when is_list(String) ->
+  case iso8601_lexer:string( String) of
+    {ok,LexTokens,1} ->
+      case iso8601_parser:parse(LexTokens) of
+        {ok, Tokens}  ->
+          Tokens;
+        {error, Info } ->
+          throw({error, {parsing_failed,Info}})
+      end;
+    {error, Info} ->
+      throw({error, {lexical_analysis_failed,Info}})
+  end.
 
 % Helper functions
 %
@@ -510,4 +513,4 @@ gregorian_days_of_iso_w01_1(Year) ->
 	D0101 + 7 - DOW + 1
 		end.
 
-%% vim: set ts=2 sw=2 ai invlist si cul nu:
+%% vim: set ts=4 sw=4 ai invlist si cul nu:
