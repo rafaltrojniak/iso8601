@@ -11,11 +11,13 @@
 
 %% API
 -export([
-    parse_date/1,
     format_date/1,
     format_date/2,
     parse_time/1,
     parse_localtime/1,
+    parse_date/1,
+    parse_datetime/1,
+    parse_localdatetime/1,
     apply_timezone_tokens/2
 	]).
 
@@ -150,9 +152,7 @@
 %%--------------------------------------------------------------------
 
 -spec(parse_date(Date::binary()|nonempty_string()) -> {Date::calendar:date(),Format::date_format()}).
-parse_date(String) when is_binary(String) ->
-	parse_date(binary_to_list(String));
-parse_date(String) ->
+parse_date(String) when is_list(String) ->
     {ok,LexTokens,1} = iso8601_lexer:string( String),
     case iso8601_parser:parse(LexTokens) of
         {ok, {date, {DetectedFormat, ParsingResult} }}  ->
@@ -399,7 +399,7 @@ check_week_number(Y,Week) ->
 
 
 %%--------------------------------------------------------------------
-%% @doc:	Parses time in specified format
+%% @doc:	Parses localtime (time with timezone)
 %% @end
 %%--------------------------------------------------------------------
 
@@ -420,6 +420,61 @@ parse_localtime("T" ++ Value) ->
         {error,Info} ->
             throw({error, {failed_to_parse,Info}})
     end.
+
+%%--------------------------------------------------------------------
+%% @doc:	Parses datetime (time with date)
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(parse_datetime(Value::nonempty_string())
+      -> {
+            {Date::calendar:date(), Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()},
+            {DateFormat::date_format(),TimeFormat::time_format()}
+        }).
+
+parse_datetime(Value) when is_list(Value)->
+	{ok,LexTokens,1} = iso8601_lexer:string(Value),
+    case iso8601_parser:parse(LexTokens) of
+        {ok,
+            {datetime,
+                {DateFormat, DateTokens},
+                {TimeFormat, TimeTokens}}
+        }  ->
+                Date=apply_date_tokens(?startDate,DateTokens),
+                {Time, Usec} = apply_time_tokens(?startTime,0 ,TimeTokens),
+                {{Date,Time, Usec},{DateFormat,TimeFormat}};
+        {error,Info} ->
+            throw({error, {failed_to_parse,Info}})
+    end.
+%%--------------------------------------------------------------------
+%% @doc:	Parses local datetime (date + time + timezone)
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(parse_localdatetime(Value::nonempty_string())
+      -> {
+            {Date::calendar:date(), Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()},
+            {DateFormat::date_format(),TimeFormat::time_format(),TZFormat::timezone_format()}
+        }).
+
+parse_localdatetime(Value) when is_list(Value) ->
+	{ok,LexTokens,1} = iso8601_lexer:string( Value),
+    case iso8601_parser:parse(LexTokens) of
+        {ok,
+            {datetime_local,
+                {DateFormat, DateTokens},
+                {TimeFormat, TimeTokens},
+                {TZFormat, Direction, TZTokens}
+            }
+        }  ->
+                Date=apply_date_tokens(?startDate,DateTokens),
+                {Time, Usec} = apply_time_tokens(?startTime,0 ,TimeTokens),
+                TZ=apply_timezone_tokens( Direction, TZTokens),
+                {{Date,Time, Usec,TZ},{DateFormat,TimeFormat,TZFormat}};
+        {error,Info} ->
+            throw({error, {failed_to_parse,Info}})
+    end.
+
 
 %%--------------------------------------------------------------------
 %% @doc:    Builds timezone difference from tokens

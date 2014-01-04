@@ -119,3 +119,33 @@ parse_localtime_test_() ->
         general_minute_extended_frac_1,
         general_minute_frac_1
     ]).
+
+parse_datetime_test_() ->
+    lists:map(
+        fun(X) ->
+            LexElements=element(2,iso8601_phases:get_datetime(X,lexer)),
+            ParserResult=iso8601_phases:get_datetime(X,parser),
+            ?_assertEqual(ParserResult
+                ,iso8601_parser:parse(LexElements))
+        end,
+    [
+        general_1,
+        general_2,
+        general_3,
+        general_4
+    ]).
+
+parse_localdatetime_test_() ->
+    lists:map(
+        fun(X) ->
+            LexElements=element(2,iso8601_phases:get_localdatetime(X,lexer)),
+            ParserResult=iso8601_phases:get_localdatetime(X,parser),
+            ?_assertEqual(ParserResult
+                ,iso8601_parser:parse(LexElements))
+        end,
+    [
+        general_1,
+        general_2,
+        general_3,
+        general_4
+    ]).

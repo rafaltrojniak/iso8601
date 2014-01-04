@@ -8,18 +8,20 @@
 %%%-------------------------------------------------------------------
 -module(iso8601_phases).
 %% API
--export([get_date/2, get_time/2, get_localtime/2, gen_stages/0]).
+-export([get_date/2, get_time/2, get_localtime/2, get_datetime/2, get_localdatetime/2, gen_stages/0]).
 
 gen_stages()  ->
     lists:foreach(
   fun(X)  ->
     try
-  LexerResult = iso8601_lexer:string(get_localtime(X,input)),
-  ParseResult = iso8601_parser:parse(element(2,LexerResult )),
-  io:format("get_localtime(~p, input)\t ->  \t~p;\n",[X,get_localtime(X,input)]),
-  io:format("get_localtime(~p, format)\t ->  \t~p;\n",[X,get_localtime(X,format)]),
-  io:format("get_localtime(~p, lexer)\t ->  \t~p;\n",[X,LexerResult]),
-  io:format("get_localtime(~p, parser)\t ->  \t~p;\n",[X,ParseResult ])
+  Input = get_localdatetime(X,input),
+  %LexerResult = iso8601_lexer:string(Input),
+  %ParseResult = iso8601_parser:parse(element(2,LexerResult )),
+  %io:format("get_localdatetime(~p, input)\t ->  \t~p;\n",[X,get_localdatetime(X,input)]),
+  %io:format("get_localdatetime(~p, lexer)\t ->  \t~p;\n",[X,LexerResult]),
+  %io:format("get_localdatetime(~p, parser)\t ->  \t~p;\n",[X,ParseResult ]),
+  Value= iso8601:parse_localdatetime(Input),
+  io:format("get_localdatetime(~p, value)\t ->  \t~p;\n",[X,Value])
     catch
   error:_ ->  ok;
   throw:_ ->  ok;
@@ -31,16 +33,7 @@ general_1,
 general_2,
 general_3,
 general_4,
-general_5,
-general_extended_1,
-general_extended_frac_1,
-general_frac_1,
-general_hour_1,
-general_hour_frac_1,
-general_minute_1,
-general_minute_extended_1,
-general_minute_extended_frac_1,
-general_minute_frac_1
+general_5
     ]
      ).
 
@@ -1071,7 +1064,288 @@ get_localtime(general_minute_frac_1, parser)     ->     {ok,
 
 get_localtime(Test, Stage) ->  throw({'Unknonwn test/stage',Test,Stage}).
 
+get_datetime(general_1, input)   ->     "2013-01-02T12:01,12";
+get_datetime(general_1, format_date)   ->     calendar_extended;
+get_datetime(general_1, format_time)   ->     general_extended_frac;
+get_datetime(general_1, lexer)   ->     {ok,
+                                         [{decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"3",3},
+                                          {minus,"-","-"},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {minus,"-","-"},
+                                          {decimal,"0",0},
+                                          {decimal,"2",2},
+                                          {time_designator,"T","T"},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {time_separator,":",":"},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {frac_separator,",",","},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2}],
+                                         1};
+get_datetime(general_1, parser)  -> {ok,
+    {datetime,
+     {calendar_extended,[{year,2013}, {month,1}, {monthday,2}]},
+     {general_minute_extended_frac,[{hour,12}, {minute,1}, {frac,60,"12"}]}}};
+get_datetime(general_1, value)      ->     {{{2013,1,2},
+                                                  {12,1,7},
+                                                  200000},
+                                                 {calendar_extended,
+                                                  general_minute_extended_frac}};
+get_datetime(general_2, input)   ->     "20130102T120100";
+get_datetime(general_2, format_date)   ->     calendar;
+get_datetime(general_2, format_time)   ->     general;
+get_datetime(general_2, lexer)   ->     {ok,
+                                         [{decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"3",3},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"2",2},
+                                          {time_designator,"T","T"},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"0",0}],
+                                         1};
+get_datetime(general_2, parser)  ->     {ok,
+                                         {datetime,
+                                          {calendar,
+                                           [{year,2013},
+                                            {month,1},
+                                            {monthday,2}]},
+                                          {general,
+                                           [{hour,12},{minute,1},{second,0}]}}};
+get_datetime(general_2, value)      ->     {{{2013,1,2},
+                                                  {12,1,0},
+                                                  0},
+                                                 {calendar,general}};
+get_datetime(general_3, input)   ->     "2013W12T120100";
+get_datetime(general_3, format_date)   ->     week;
+get_datetime(general_3, format_time)   ->     general;
+get_datetime(general_3, lexer)   ->     {ok,
+                                         [{decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"3",3},
+                                          {week_separator,"W","W"},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {time_designator,"T","T"},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"0",0}],
+                                         1};
+get_datetime(general_3, parser)  ->     {ok,
+                                         {datetime,
+                                          {week,[{year,2013},{weeknumber,12}]},
+                                          {general,
+                                           [{hour,12},{minute,1},{second,0}]}}};
+get_datetime(general_3, value)      ->     {{{2013,3,18},
+                                                  {12,1,0},
+                                                  0},
+                                                 {week,general}};
+get_datetime(general_4, input)   ->     "2013-123T1201";
+get_datetime(general_4, format_date)   ->     ordinal_extended;
+get_datetime(general_4, format_time)   ->     general_minute;
+get_datetime(general_4, lexer)   ->     {ok,
+                                         [{decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"3",3},
+                                          {minus,"-","-"},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {decimal,"3",3},
+                                          {time_designator,"T","T"},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1}],
+                                         1};
+get_datetime(general_4, parser)  ->     {ok,
+                                         {datetime,
+                                          {ordinal_extended,
+                                           [{year,2013},{yearday,123}]},
+                                          {general_minute,
+                                           [{hour,12},{minute,1}]}}};
+get_datetime(general_4, value)      ->     {{{2013,5,3},
+                                                  {12,1,0},
+                                                  0},
+                                                 {ordinal_extended,
+                                                  general_minute}};
 
+get_datetime(test, stage) ->  throw({'unknonwn test/stage',test,stage}).
+
+get_localdatetime(general_1, input)   ->     "2013-01-02T12:01,12+10:00";
+get_localdatetime(general_1, format_date)   ->     calendar_extended;
+get_localdatetime(general_1, format_time)   ->     general_extended_frac;
+get_localdatetime(general_1, format_tz)   ->       minute_extended;
+get_localdatetime(general_1, lexer)   ->     {ok,
+                                         [{decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"3",3},
+                                          {minus,"-","-"},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {minus,"-","-"},
+                                          {decimal,"0",0},
+                                          {decimal,"2",2},
+                                          {time_designator,"T","T"},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {time_separator,":",":"},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {frac_separator,",",","},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {plus,"+","+"},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {time_separator,":",":"},
+                                          {decimal,"0",0},
+                                          {decimal,"0",0}],
+                                         1};
+get_localdatetime(general_1, parser)  -> {ok,
+    {datetime_local,
+     {calendar_extended,[{year,2013}, {month,1}, {monthday,2}]},
+     {general_minute_extended_frac,[{hour,12}, {minute,1}, {frac,60,"12"}]},
+     {minute_extended,add,[{hour,10},{minute,0}]}}};
+get_localdatetime(general_1, value)      ->     {{{2013,1,2},
+                                                  {12,1,7},
+                                                  200000,36000},
+                                                 {calendar_extended,
+                                                  general_minute_extended_frac,
+                                                  minute_extended}};
+get_localdatetime(general_2, input)   ->     "20130102T120100-1020";
+get_localdatetime(general_2, format_date)   ->     calendar;
+get_localdatetime(general_2, format_time)   ->     general;
+get_localdatetime(general_2, format_tz)   ->       minute;
+get_localdatetime(general_2, lexer)   ->     {ok,
+                                         [{decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"3",3},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"2",2},
+                                          {time_designator,"T","T"},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"0",0},
+                                          {minus,"-","-"},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"2",2},
+                                          {decimal,"0",0}],
+                                         1};
+get_localdatetime(general_2, parser)  ->     {ok,
+                                         {datetime_local,
+                                          {calendar,
+                                           [{year,2013},
+                                            {month,1},
+                                            {monthday,2}]},
+                                          {general,
+                                           [{hour,12},{minute,1},{second,0}]},
+                                          {minute,sub,
+                                           [{hour,10},{minute,20}]}}};
+get_localdatetime(general_2, value)      ->     {{{2013,1,2},
+                                                  {12,1,0},
+                                                  0,-37200},
+                                                 {calendar,general,minute}};
+get_localdatetime(general_3, input)   ->     "2013W12T120100-1000";
+get_localdatetime(general_3, format_date)   ->     week;
+get_localdatetime(general_3, format_time)   ->     general;
+get_localdatetime(general_3, format_tz)   ->       minute;
+get_localdatetime(general_3, lexer)   ->     {ok,
+                                         [{decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"3",3},
+                                          {week_separator,"W","W"},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {time_designator,"T","T"},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"0",0},
+                                          {minus,"-","-"},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"0",0},
+                                          {decimal,"0",0}],
+                                         1};
+get_localdatetime(general_3, parser)  ->     {ok,
+                                         {datetime_local,
+                                          {week,[{year,2013},{weeknumber,12}]},
+                                          {general,
+                                           [{hour,12},{minute,1},{second,0}]},
+                                          {minute,sub,
+                                           [{hour,10},{minute,0}]}}};
+get_localdatetime(general_3, value)      ->     {{{2013,3,18},
+                                                  {12,1,0},
+                                                  0,-36000},
+                                                 {week,general,minute}};
+get_localdatetime(general_4, input)   ->     "2013-123T1201-1000";
+get_localdatetime(general_4, format_date)   ->     ordinal_extended;
+get_localdatetime(general_4, format_time)   ->     general_minute;
+get_localdatetime(general_4, format_tz)   ->       minute;
+get_localdatetime(general_4, lexer)   ->     {ok,
+                                         [{decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {decimal,"3",3},
+                                          {minus,"-","-"},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {decimal,"3",3},
+                                          {time_designator,"T","T"},
+                                          {decimal,"1",1},
+                                          {decimal,"2",2},
+                                          {decimal,"0",0},
+                                          {decimal,"1",1},
+                                          {minus,"-","-"},
+                                          {decimal,"1",1},
+                                          {decimal,"0",0},
+                                          {decimal,"0",0},
+                                          {decimal,"0",0}],
+                                         1};
+get_localdatetime(general_4, parser)  ->     {ok,
+                                         {datetime_local,
+                                          {ordinal_extended,
+                                           [{year,2013},{yearday,123}]},
+                                          {general_minute,
+                                           [{hour,12},{minute,1}]},
+                                          {minute,sub,
+                                           [{hour,10},{minute,0}]}}};
+get_localdatetime(general_4, value)      ->     {{{2013,5,3},
+                                                  {12,1,0},
+                                                  0,-36000},
+                                                 {ordinal_extended,
+                                                  general_minute,minute}};
+
+get_localdatetime(Test, Stage) ->  throw({'Unknonwn test/stage',Test,Stage}).
 %%--------------------------------------------------------------------
 %% @doc
 %% @spec
