@@ -29,6 +29,9 @@ init_dialyzer:
 eunit: compile
 	./rebar eunit skip_deps=true
 
+eunit_cover: compile
+	./rebar -C rebar_cover.config eunit skip_deps=true
+
 
 clean:
 	$(RM) $(COMPILE_FILES) src/*~
