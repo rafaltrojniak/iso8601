@@ -290,9 +290,7 @@ parse_date_test() ->
     ?assert(meck:validate(iso8601_lexer)),
     ?assert(meck:validate(iso8601_parser)),
     ?assert(meck:validate(iso8601)),
-    meck:unload(iso8601),
-    meck:unload(iso8601_lexer),
-    meck:unload(iso8601_parser),
+    meck:unload(),
     ok.
 
 parse_date_wrongformat_test() ->
@@ -307,8 +305,7 @@ parse_date_wrongformat_test() ->
     ?assertThrow({error,{format_mismatch,time}},iso8601:parse_date(Input)),
     ?assert(meck:validate(iso8601_lexer)),
     ?assert(meck:validate(iso8601_parser)),
-    meck:unload(iso8601_lexer),
-    meck:unload(iso8601_parser),
+    meck:unload(),
     ok.
 
 apply_date_tokens_test_() ->
@@ -488,16 +485,14 @@ parse_time_test() ->
     meck:expect(iso8601_parser,parse,fun(_Lexer) -> ?assertEqual(LexTokens,_Lexer), Parser end),
     meck:expect(iso8601,apply_time_tokens,
                 fun(_Time,_UTime,_Tokens) ->
-                        ?assertEqual(_Time,{0,1,1}),
-                        ?assertEqual(_UTime,0),
+                        ?assertEqual({0,0,0},_Time),
+                        ?assertEqual(0,_UTime),
                         ?assertEqual(Tokens,_Tokens),Value end),
     ?assertEqual({Value,Format},iso8601:parse_time(Input)),
     ?assert(meck:validate(iso8601_lexer)),
     ?assert(meck:validate(iso8601_parser)),
     ?assert(meck:validate(iso8601)),
-    meck:unload(iso8601),
-    meck:unload(iso8601_lexer),
-    meck:unload(iso8601_parser),
+    meck:unload(),
     ok.
 
 parse_time_wrongform_test() ->
@@ -512,8 +507,7 @@ parse_time_wrongform_test() ->
     ?assertThrow({error,{format_mismatch,localtime}},iso8601:parse_time(Input)),
     ?assert(meck:validate(iso8601_lexer)),
     ?assert(meck:validate(iso8601_parser)),
-    meck:unload(iso8601_lexer),
-    meck:unload(iso8601_parser),
+    meck:unload(),
     ok.
 
 parse_localtime_test() ->
@@ -532,21 +526,22 @@ parse_localtime_test() ->
     meck:expect(iso8601_parser,parse,fun(_Lexer) -> ?assertEqual(LexTokens,_Lexer), Parser end),
     meck:expect(iso8601,apply_time_tokens,
                 fun(_Time,_UTime,_Tokens) ->
-                        ?assertEqual(_Time,{0,1,1}),
-                        ?assertEqual(_UTime,0),
-                        ?assertEqual(Tokens,_Tokens),Value end),
+                        ?assertEqual({0,0,0},_Time),
+                        ?assertEqual(0,_UTime),
+                        ?assertEqual(Tokens,_Tokens),
+                        { element(1,Value),
+                        element(2,Value)}
+                end),
     meck:expect(iso8601,apply_timezone_tokens,
                 fun(_Direction, _Tokens) ->
                         ?assertEqual(_Direction, element(2,element(3,element(2,Parser)))),
                         ?assertEqual(_Tokens, element(3,element(3,element(2,Parser)))),
-                        Value end),
+                        element(3,Value) end),
     ?assertEqual({Value,{TFormat,TZFormat}},iso8601:parse_localtime(Input)),
     ?assert(meck:validate(iso8601_lexer)),
     ?assert(meck:validate(iso8601_parser)),
     ?assert(meck:validate(iso8601)),
-    meck:unload(iso8601),
-    meck:unload(iso8601_lexer),
-    meck:unload(iso8601_parser),
+    meck:unload(),
     ok.
 
 parse_localtime_wrongformat_test() ->
@@ -561,8 +556,7 @@ parse_localtime_wrongformat_test() ->
     ?assertThrow({error,{format_mismatch,time}},iso8601:parse_localtime(Input)),
     ?assert(meck:validate(iso8601_lexer)),
     ?assert(meck:validate(iso8601_parser)),
-    meck:unload(iso8601_lexer),
-    meck:unload(iso8601_parser),
+    meck:unload(),
     ok.
 
 
@@ -595,25 +589,23 @@ parse_datetime_test() ->
     meck:expect(iso8601_parser,parse,fun(_Lexer) -> ?assertEqual(LexTokens,_Lexer), Parser end),
     meck:expect(iso8601,apply_time_tokens,
                 fun(_Time,_UTime,_Tokens) ->
-                        ?assertEqual(_Time,{0,1,1}),
-                        ?assertEqual(_UTime,0),
+                        ?assertEqual({0,0,0},_Time),
+                        ?assertEqual(0,_UTime),
                         ?assertEqual(TimeTokens,_Tokens),
-                        {element(2,element(2,Value)),
-                        element(3,element(2,Value)) }
+                        {element(2,element(1,Value)),
+                        element(3,element(1,Value)) }
                         end),
     meck:expect(iso8601,apply_date_tokens,
                 fun(_Date,_Tokens) ->
-                        ?assertEqual(_Date,{0,1,1}),
+                        ?assertEqual({0,1,1},_Date),
                         ?assertEqual(DateTokens,_Tokens),
-                        element(1,element(2,Value))
+                        element(1,element(1,Value))
                 end),
     ?assertEqual(Value,iso8601:parse_datetime(Input)),
     ?assert(meck:validate(iso8601_lexer)),
     ?assert(meck:validate(iso8601_parser)),
     ?assert(meck:validate(iso8601)),
-    meck:unload(iso8601),
-    meck:unload(iso8601_lexer),
-    meck:unload(iso8601_parser),
+    meck:unload(),
     ok.
 
 parse_datetime_wrongformat_test() ->
@@ -628,8 +620,7 @@ parse_datetime_wrongformat_test() ->
     ?assertThrow({error,{format_mismatch,datetime_local}},iso8601:parse_datetime(Input)),
     ?assert(meck:validate(iso8601_lexer)),
     ?assert(meck:validate(iso8601_parser)),
-    meck:unload(iso8601_lexer),
-    meck:unload(iso8601_parser),
+    meck:unload(),
     ok.
 
 parse_localdatetime_test() ->
@@ -640,8 +631,8 @@ parse_localdatetime_test() ->
     LexTokens=element(2,Lexer),
     DateTokens  = element(2,element(2,element(2,Parser))),
     TimeTokens  = element(2,element(3,element(2,Parser))),
-    TZTokens  = element(2,element(4,element(2,Parser))),
-    TZDirection= element(3,element(4,element(2,Parser))),
+    TZDirection= element(2,element(4,element(2,Parser))),
+    TZTokens  = element(3,element(4,element(2,Parser))),
     meck:new(iso8601_lexer),
     meck:new(iso8601_parser),
     meck:new(iso8601,[passthrough]),
@@ -649,30 +640,28 @@ parse_localdatetime_test() ->
     meck:expect(iso8601_parser,parse,fun(_Lexer) -> ?assertEqual(LexTokens,_Lexer), Parser end),
     meck:expect(iso8601,apply_time_tokens,
                 fun(_Time,_UTime,_Tokens) ->
-                        ?assertEqual(_Time,{0,1,1}),
-                        ?assertEqual(_UTime,0),
+                        ?assertEqual({0,0,0},_Time),
+                        ?assertEqual(0,_UTime),
                         ?assertEqual(TimeTokens,_Tokens),
-                        {element(2,element(2,Value)),
-                        element(3,element(2,Value)) }
+                        {element(2,element(1,Value)),
+                        element(3,element(1,Value)) }
                         end),
     meck:expect(iso8601,apply_date_tokens,
                 fun(_Date,_Tokens) ->
-                        ?assertEqual(_Date,{0,1,1}),
+                        ?assertEqual({0,1,1},_Date),
                         ?assertEqual(DateTokens,_Tokens),
-                        element(1,element(2,Value))
+                        element(1,element(1,Value))
                 end),
     meck:expect(iso8601,apply_timezone_tokens,
                 fun(_Direction, _Tokens) ->
-                        ?assertEqual(_Direction, TZDirection),
+                        ?assertEqual(TZDirection,_Direction),
                         ?assertEqual(_Tokens, TZTokens),
-                        Value end),
+                        element(4,element(1,Value))end),
     ?assertEqual(Value,iso8601:parse_localdatetime(Input)),
     ?assert(meck:validate(iso8601_lexer)),
     ?assert(meck:validate(iso8601_parser)),
     ?assert(meck:validate(iso8601)),
-    meck:unload(iso8601),
-    meck:unload(iso8601_lexer),
-    meck:unload(iso8601_parser),
+    meck:unload(),
     ok.
 parse_localdatetime_wrongformat_test() ->
     Input   = iso8601_phases:get_datetime(general_1, input),
@@ -686,8 +675,7 @@ parse_localdatetime_wrongformat_test() ->
     ?assertThrow({error,{format_mismatch,datetime}},iso8601:parse_localdatetime(Input)),
     ?assert(meck:validate(iso8601_lexer)),
     ?assert(meck:validate(iso8601_parser)),
-    meck:unload(iso8601_lexer),
-    meck:unload(iso8601_parser),
+    meck:unload(),
     ok.
 
 parse_localdatetime_lexfail_test() ->
@@ -697,7 +685,7 @@ parse_localdatetime_lexfail_test() ->
     meck:expect(iso8601_lexer,string,fun(_Input) -> ?assertEqual(Input,_Input), Lexer end),
     ?assertThrow({error, {lexical_analysis_failed,_,1}},iso8601:parse_localdatetime(Input)),
     ?assert(meck:validate(iso8601_lexer)),
-    meck:unload(iso8601_lexer),
+    meck:unload(),
     ok.
 
 parse_localdatetime_parserfail_test() ->
@@ -712,6 +700,71 @@ parse_localdatetime_parserfail_test() ->
     ?assertThrow({error, {parsing_failed,_}},iso8601:parse_localdatetime(Input)),
     ?assert(meck:validate(iso8601_parser)),
     ?assert(meck:validate(iso8601_lexer)),
-    meck:unload(iso8601_parser),
-    meck:unload(iso8601_lexer),
+    meck:unload(),
+    ok.
+
+format_timezone_test_() ->
+    [
+        ?_assertEqual( "+0000", iso8601:format_timezone(0,minute)),
+        ?_assertEqual( "-0100", iso8601:format_timezone(-3600,minute)),
+        ?_assertEqual( "-1000", iso8601:format_timezone(-36000,minute)),
+        ?_assertEqual( "+1000", iso8601:format_timezone(36000,minute)),
+        ?_assertEqual( "+00:00", iso8601:format_timezone(0,minute_extended)),
+        ?_assertEqual( "+01:00", iso8601:format_timezone(3600,minute_extended)),
+        ?_assertEqual( "+10:00", iso8601:format_timezone(3600*10,minute_extended)),
+        ?_assertEqual( "-10:00", iso8601:format_timezone(-3600*10,minute_extended)),
+        ?_assertEqual( "+10:01", iso8601:format_timezone(3600*10+60,minute_extended)),
+        ?_assertEqual( "+10:30", iso8601:format_timezone(3600*10+60*30,minute_extended)),
+        ?_assertEqual( "+00", iso8601:format_timezone(0,hour)),
+        ?_assertEqual( "+01", iso8601:format_timezone(3600,hour)),
+        ?_assertEqual( "+10", iso8601:format_timezone(3600*10,hour)),
+        ?_assertEqual( "-10", iso8601:format_timezone(-3600*10,hour)),
+        ?_assertEqual( "Z", iso8601:format_timezone(0,utc)),
+        ?_assertThrow( {error,{unknown_format,wtf}}, iso8601:format_timezone(0,wtf))
+    ].
+
+gen_localtime_test() ->
+    meck:new(iso8601,[passthrough]),
+    meck:expect(iso8601,format_time,
+                fun(Time,Utime,Format) ->
+                        ?assertEqual({10,5,2},Time),
+                        ?assertEqual(0,Utime),
+                        ?assertEqual(general,Format),
+                        "T100502"
+                end),
+    meck:expect(iso8601,format_timezone,
+                fun(TZ,Format) ->
+                        ?assertEqual(36000,TZ),
+                        ?assertEqual(minute,Format),
+                        "+1000"
+                end),
+    ?assertEqual("T100502+1000",iso8601:format_localtime({10,5,2},0,36000,general,minute)),
+    ?assert(meck:validate(iso8601)),
+    meck:unload(),
+    ok.
+
+gen_localdatetime_test() ->
+    meck:new(iso8601,[passthrough]),
+    meck:expect(iso8601,format_date,
+                fun(Date,Format) ->
+                        ?assertEqual({2013,1,1},Date),
+                        ?assertEqual(calendar,Format),
+                        "20130101"
+                end),
+    meck:expect(iso8601,format_time,
+                fun(Time,Utime,Format) ->
+                        ?assertEqual({10,5,2},Time),
+                        ?assertEqual(0,Utime),
+                        ?assertEqual(general,Format),
+                        "T100502"
+                end),
+    meck:expect(iso8601,format_timezone,
+                fun(TZ,Format) ->
+                        ?assertEqual(36000,TZ),
+                        ?assertEqual(minute,Format),
+                        "+1000"
+                end),
+    ?assertEqual("20130101T100502+1000",iso8601:format_localdatetime({2013,1,1},{10,5,2},0,36000,calendar,general,minute)),
+    ?assert(meck:validate(iso8601)),
+    meck:unload(),
     ok.

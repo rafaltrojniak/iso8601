@@ -11,40 +11,50 @@
 
 %% API
 -export([
+    parse_time/1,
+    format_time/2,
+    format_time/3,
+    parse_localtime/1,
+    format_localtime/3,
+    format_localtime/5,
+    format_timezone/1,
+    format_timezone/2,
+    parse_date/1,
     format_date/1,
     format_date/2,
-    parse_time/1,
-    parse_localtime/1,
-    parse_date/1,
     parse_datetime/1,
+    format_datetime/3,
+    format_datetime/5,
     parse_localdatetime/1,
+    format_localdatetime/4,
+    format_localdatetime/7,
     apply_timezone_tokens/2
-	]).
+    ]).
 
 %% Internal
 -export([
-		apply_date_tokens/2,
-		apply_time_tokens/3
-	]).
+        apply_date_tokens/2,
+        apply_time_tokens/3
+    ]).
 
 -export_type([
-		date_format/0,
-		time_format/0,
+        date_format/0,
+        time_format/0,
         timezone_format/0
-	]).
+    ]).
 
 -type date_format() ::
-		calendar|
-		calendar_extended|
-		calendar_month|
-		calendar_year|
-		calendar_century|
-		ordinal|
-		ordinal_extended|
-		weekday|
-		weekday_extended|
-		week|
-		week_extended .
+    calendar|
+    calendar_extended|
+    calendar_month|
+    calendar_year|
+    calendar_century|
+    ordinal|
+    ordinal_extended|
+    weekday|
+    weekday_extended|
+    week|
+    week_extended .
 %%
 %% Specifies date format to parse/produce
 %%
@@ -77,16 +87,16 @@
 
 
 -type time_format() ::
-	general|
-	general_extended|
-	general_minute|
-	general_minute_extended|
-	general_hour|
-	general_frac|
-	general_extended_frac|
-	general_minute_frac|
-	general_minute_extended_frac|
-	general_hour_frac .
+    general|
+    general_extended|
+    general_minute|
+    general_minute_extended|
+    general_hour|
+    general_frac|
+    general_extended_frac|
+    general_minute_frac|
+    general_minute_extended_frac|
+    general_hour_frac .
 %%
 %% Specifies time format to parse/produce
 %%
@@ -156,7 +166,7 @@ parse_date(String) when is_list(String) ->
     case parse(String) of
         {date,
          {DetectedFormat, ParsingResult}}  ->
-            Date=apply_date_tokens(?startDate,ParsingResult),
+            Date=?MODULE:apply_date_tokens(?startDate,ParsingResult),
             {Date, DetectedFormat};
         _Other ->
             throw({error, {format_mismatch, element(1,_Other)}})
@@ -170,7 +180,7 @@ parse_date(String) when is_list(String) ->
 -spec(format_date(calendar:date()) -> nonempty_string() ).
 
 format_date(Date) ->
-	format_date(Date,calendar_extended).
+	?MODULE:format_date(Date,calendar_extended).
 
 %%--------------------------------------------------------------------
 %% @doc: Generate string representing date in specific format
@@ -269,17 +279,232 @@ format_date(Junk, _Type) ->
 %%--------------------------------------------------------------------
 
 -spec(parse_time(String::nonempty_string() )
-			-> {{Time::calendar:time(),MicroSec :: non_neg_integer()},Format::time_format()}).
+   -> {
+       {Time::calendar:time(),MicroSec :: non_neg_integer()},
+       Format::time_format()
+   }).
 
 parse_time(String ) when is_list(String) ->
     case parse(String) of
         {time,
          {DetectedFormat, ParsingResult}}  ->
-            Time=apply_time_tokens(?startTime,0 ,ParsingResult),
+            Time=?MODULE:apply_time_tokens(?startTime,0 ,ParsingResult),
             {Time,DetectedFormat};
         _Other ->
             throw({error, {format_mismatch, element(1,_Other)}})
     end.
+
+%%--------------------------------------------------------------------
+%% @doc:    Formats time wigh general, or general_frac format
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(format_time(Time::calendar:time(), Utime::non_neg_integer() ) -> nonempty_string()).
+
+format_time(Time, Utime ) ->
+    if
+        Utime>0 -> ?MODULE:format_time(Time, Utime, general_frac);
+        true -> ?MODULE:format_time(Time, Utime, general)
+    end.
+
+%%--------------------------------------------------------------------
+%% @doc:    Formats time according to supplied format
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(format_time(Time::calendar:time(), Utime::non_neg_integer(), Format::time_format() ) -> nonempty_string()).
+
+format_time({H,M,S}, _, general) ->
+    lists:flatten(
+        io_lib:format("T~2..0B~2..0B~2..0B",[H, M, S])
+    );
+format_time(_Time, _Utime, Format) ->
+    throw({error, {unsupported_format,Format}}).
+
+%%--------------------------------------------------------------------
+%% @doc:	Parses localtime (time with timezone)
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(parse_localtime(String::nonempty_string())
+    -> {
+        {Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()},
+        {TimeFormat::time_format(),TZFormat::timezone_format()}}).
+
+parse_localtime(String) when is_list(String) ->
+    case parse(String) of
+        {localtime,
+            {TimeFormat, ParsingResult},
+            {TZFormat, Direction, TZTokens}} ->
+                {Time, Usec} = ?MODULE:apply_time_tokens(?startTime,0 ,ParsingResult),
+                TZ=?MODULE:apply_timezone_tokens( Direction, TZTokens),
+                {{Time, Usec, TZ},{TimeFormat,TZFormat}};
+        _Other ->
+            throw({error, {format_mismatch, element(1,_Other)}})
+    end.
+
+%%--------------------------------------------------------------------
+%% @doc:    Formats local time wigh general, or general_frac format
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(format_localtime(Time::calendar:time(), Utime::non_neg_integer(), TZ::integer() )
+      -> nonempty_string()).
+
+format_localtime(Time, Utime, TZ) ->
+    ?MODULE:format_time(Time, Utime) ++ ?MODULE:format_timezone(TZ).
+
+%%--------------------------------------------------------------------
+%% @doc:    Formats local time according to supplied format
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(format_localtime(Time::calendar:time(), Utime::non_neg_integer(), TZ::integer(),
+                       Format::time_format(), TZFormat::timezone_format() )
+      -> nonempty_string()).
+
+format_localtime(Time, Utime, TZ, Format, Format_TZ) ->
+    ?MODULE:format_time(Time,Utime, Format) ++ ?MODULE:format_timezone(TZ,Format_TZ).
+
+%%--------------------------------------------------------------------
+%% @doc:    Formats local time according to supplied format
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(format_timezone(TZ::integer() ) -> nonempty_string()).
+
+format_timezone(TZ)  ->
+    ?MODULE:format_timezone(TZ,minute).
+
+%%--------------------------------------------------------------------
+%% @doc:    Formats local time according to supplied format
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(format_timezone(TZ::integer(),TZFormat::timezone_format() )
+      -> nonempty_string()).
+
+format_timezone(0, utc)  ->
+    "Z";
+format_timezone(TZ, hour) when is_integer(TZ) ->
+    Sign=case TZ<0 of
+             true -> $-;
+             false -> $+
+         end,
+    lists:flatten( [Sign |
+        io_lib:format("~2..0B",[abs(trunc(TZ div 3600))])
+       ]
+    );
+format_timezone(TZ, minute) when is_integer(TZ) ->
+    format_timezone(TZ, hour) ++
+    lists:flatten( [ io_lib:format("~2..0B",[abs(trunc(TZ div 60 rem 60))]) ]);
+format_timezone(TZ, minute_extended) when is_integer(TZ) ->
+    format_timezone(TZ, hour) ++ ":" ++
+    lists:flatten( [ io_lib:format("~2..0B",[abs(trunc(TZ div 60 rem 60))]) ]);
+format_timezone(TZ, Format) when is_integer(TZ) andalso is_atom(Format) ->
+    throw({error, {unknown_format,Format}}).
+
+
+%%--------------------------------------------------------------------
+%% @doc:	Parses datetime (time with date)
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(parse_datetime(String::nonempty_string())
+      -> {
+            {Date::calendar:date(), Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()},
+            {DateFormat::date_format(),TimeFormat::time_format()}
+        }).
+
+parse_datetime(String) when is_list(String)->
+    case parse(String) of
+        {datetime,
+            {DateFormat, DateTokens},
+            {TimeFormat, TimeTokens}} ->
+                Date=?MODULE:apply_date_tokens(?startDate,DateTokens),
+                {Time, Usec} = ?MODULE:apply_time_tokens(?startTime,0 ,TimeTokens),
+                {{Date,Time, Usec},{DateFormat,TimeFormat}};
+        _Other ->
+            throw({error, {format_mismatch, element(1,_Other)}})
+    end.
+
+%%--------------------------------------------------------------------
+%% @doc:    Formats local time wigh general, or general_frac format
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(format_datetime(Date::calendar:date(), Time::calendar:time(), Utime::non_neg_integer() ) -> nonempty_string()).
+
+format_datetime(Date, Time, Utime) ->
+    if
+        Utime>0 -> ?MODULE:format_datetime(Date, Time, Utime, calendar, general_frac);
+        true -> ?MODULE:format_datetime(Date, Time, Utime, calendar, general)
+    end.
+
+%%--------------------------------------------------------------------
+%% @doc:    Formats local time according to supplied format
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(format_datetime(Date::calendar:date(), Time::calendar:time(), Utime::non_neg_integer(),
+                      DateFormat::date_format(), TimeFormat::time_format())
+      -> nonempty_string()).
+
+format_datetime(Date, Time, Utime, DateFormat, TimeFormat) ->
+    ?MODULE:format_date(Date, DateFormat) ++ ?MODULE:format_time(Time,Utime, TimeFormat).
+
+%%--------------------------------------------------------------------
+%% @doc:	Parses local datetime (date + time + timezone)
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(parse_localdatetime(String::nonempty_string())
+      -> {
+            {Date::calendar:date(), Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()},
+            {DateFormat::date_format(),TimeFormat::time_format(),TZFormat::timezone_format()}
+        }).
+
+parse_localdatetime(String) when is_list(String) ->
+    case parse(String) of
+        {datetime_local,
+            {DateFormat, DateTokens},
+            {TimeFormat, TimeTokens},
+            {TZFormat, Direction, TZTokens}
+        } ->
+            Date=?MODULE:apply_date_tokens(?startDate,DateTokens),
+            {Time, Usec} = ?MODULE:apply_time_tokens(?startTime,0 ,TimeTokens),
+            TZ=?MODULE:apply_timezone_tokens( Direction, TZTokens),
+            {{Date,Time, Usec,TZ},{DateFormat,TimeFormat,TZFormat}};
+        _Other ->
+            throw({error, {format_mismatch, element(1,_Other)}})
+    end.
+%%--------------------------------------------------------------------
+%% @doc:    Formats local time wigh general, or general_frac format
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(format_localdatetime(Date::calendar:date(), Time::calendar:time(), Utime::non_neg_integer(), TZ::integer() ) -> nonempty_string()).
+
+format_localdatetime(Date, Time, Utime, TZ) ->
+    ?MODULE:format_date(Date) ++ ?MODULE:format_time(Time,Utime) ++ ?MODULE:format_timezone(TZ).
+
+%%--------------------------------------------------------------------
+%% @doc:    Formats local time according to supplied format
+%% @end
+%%--------------------------------------------------------------------
+
+-spec(format_localdatetime(Date::calendar:date(), Time::calendar:time(), Utime::non_neg_integer(), TZ::integer(),
+                      DateFormat::date_format(), TimeFormat::time_format(), TZFormat::timezone_format())
+      -> nonempty_string()).
+
+format_localdatetime(Date, Time, Utime, TZ, DateFormat, TimeFormat, TZFormat) ->
+    ?MODULE:format_date(Date, DateFormat) ++ ?MODULE:format_time(Time,Utime, TimeFormat)
+    ++ ?MODULE:format_timezone(TZ, TZFormat).
+
+%%--------------------------------------------------------------------
+%% @doc:    Apply tokens from parser to build date
+%% @end
+%%--------------------------------------------------------------------
 
 apply_date_tokens({_,M,D},[{year,Year}|Elements]) ->
     apply_date_tokens({Year,M,D},Elements);
@@ -345,6 +570,10 @@ apply_date_tokens(_,[Element|_]) ->
 apply_date_tokens(Date,[]) ->
     Date.
 
+%%--------------------------------------------------------------------
+%% @doc:    Apply tokens from parser to build time
+%% @end
+%%--------------------------------------------------------------------
 apply_time_tokens({_,M,S},U,[{hour,H}|Elements]) ->
 	apply_time_tokens({H,M,S},U,Elements);
 apply_time_tokens({H,_,S},U,[{minute,M}|Elements]) ->
@@ -383,87 +612,17 @@ apply_time_tokens(T,U,[]) ->
 
 
 check_week_number(Y,Week) ->
-		{_, LastWeekNumber} = calendar:iso_week_number(
-			calendar:gregorian_days_to_date(
-				gregorian_days_of_iso_w01_1(Y+1)-1
-			)
-		),
-		if
-			Week < 1 ->
-				throw ({error,{weeknumber_too_low,Week}});
-			Week > LastWeekNumber ->
-				throw ({error,{weeknumber_too_big,{Y,Week} }});
-			true -> ok
-		end.
-
-
-
-%%--------------------------------------------------------------------
-%% @doc:	Parses localtime (time with timezone)
-%% @end
-%%--------------------------------------------------------------------
-
--spec(parse_localtime(String::nonempty_string())
-			-> {{Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()},{TimeFormat::time_format(),TZFormat::timezone_format()}}).
-
-parse_localtime(String) when is_list(String) ->
-    case parse(String) of
-        {localtime,
-            {TimeFormat, ParsingResult},
-            {TZFormat, Direction, TZTokens}} ->
-                {Time, Usec} = apply_time_tokens(?startTime,0 ,ParsingResult),
-                TZ=apply_timezone_tokens( Direction, TZTokens),
-                {{Time, Usec, TZ},{TimeFormat,TZFormat}};
-        _Other ->
-            throw({error, {format_mismatch, element(1,_Other)}})
-    end.
-
-%%--------------------------------------------------------------------
-%% @doc:	Parses datetime (time with date)
-%% @end
-%%--------------------------------------------------------------------
-
--spec(parse_datetime(String::nonempty_string())
-      -> {
-            {Date::calendar:date(), Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()},
-            {DateFormat::date_format(),TimeFormat::time_format()}
-        }).
-
-parse_datetime(String) when is_list(String)->
-    case parse(String) of
-        {datetime,
-            {DateFormat, DateTokens},
-            {TimeFormat, TimeTokens}} ->
-                Date=apply_date_tokens(?startDate,DateTokens),
-                {Time, Usec} = apply_time_tokens(?startTime,0 ,TimeTokens),
-                {{Date,Time, Usec},{DateFormat,TimeFormat}};
-        _Other ->
-            throw({error, {format_mismatch, element(1,_Other)}})
-    end.
-%%--------------------------------------------------------------------
-%% @doc:	Parses local datetime (date + time + timezone)
-%% @end
-%%--------------------------------------------------------------------
-
--spec(parse_localdatetime(String::nonempty_string())
-      -> {
-            {Date::calendar:date(), Time::calendar:time(), MicroSec::non_neg_integer(), TD::time_difference()},
-            {DateFormat::date_format(),TimeFormat::time_format(),TZFormat::timezone_format()}
-        }).
-
-parse_localdatetime(String) when is_list(String) ->
-    case parse(String) of
-        {datetime_local,
-            {DateFormat, DateTokens},
-            {TimeFormat, TimeTokens},
-            {TZFormat, Direction, TZTokens}
-        } ->
-            Date=apply_date_tokens(?startDate,DateTokens),
-            {Time, Usec} = apply_time_tokens(?startTime,0 ,TimeTokens),
-            TZ=apply_timezone_tokens( Direction, TZTokens),
-            {{Date,Time, Usec,TZ},{DateFormat,TimeFormat,TZFormat}};
-        _Other ->
-            throw({error, {format_mismatch, element(1,_Other)}})
+    {_, LastWeekNumber} = calendar:iso_week_number(
+        calendar:gregorian_days_to_date(
+            gregorian_days_of_iso_w01_1(Y+1)-1
+        )
+    ),
+    if
+        Week < 1 ->
+            throw ({error,{weeknumber_too_low,Week}});
+        Week > LastWeekNumber ->
+            throw ({error,{weeknumber_too_big,{Y,Week} }});
+        true -> ok
     end.
 
 
@@ -484,6 +643,10 @@ apply_timezone_tokens(Direction, Tokens) ->
     add -> TZ
   end.
 
+%%--------------------------------------------------------------------
+%% @doc:    Runs lexer and parser to produce tokens from strings
+%% @end
+%%--------------------------------------------------------------------
 parse(String) when is_list(String) ->
   case iso8601_lexer:string( String) of
     {ok,LexTokens,1} ->
