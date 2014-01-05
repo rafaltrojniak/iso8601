@@ -303,7 +303,7 @@ parse_time(String ) when is_list(String) ->
 
 format_time(Time, Utime ) ->
     if
-        Utime>0 -> ?MODULE:format_time(Time, Utime, general_frac);
+        Utime>0 -> ?MODULE:format_time(Time, Utime, {general_frac,6});
         true -> ?MODULE:format_time(Time, Utime, general)
     end.
 
@@ -318,8 +318,55 @@ format_time({H,M,S}, _, general) ->
     lists:flatten(
         io_lib:format("T~2..0B~2..0B~2..0B",[H, M, S])
     );
+format_time({H,M,S}, _, general_extended) ->
+    lists:flatten(
+        io_lib:format("T~2..0B:~2..0B:~2..0B",[H, M, S])
+    );
+format_time({H,M,_}, _, general_minute) ->
+    lists:flatten(
+        io_lib:format("T~2..0B~2..0B",[H, M])
+    );
+format_time({H,M,_}, _, general_minute_extended) ->
+    lists:flatten(
+        io_lib:format("T~2..0B:~2..0B",[H, M])
+    );
+format_time({H,_,_}, _, general_hour) ->
+    lists:flatten(
+        io_lib:format("T~2..0B",[H])
+    );
+format_time({H,M,S}, Utime, {general_frac,Pos}) ->
+    lists:flatten(
+        io_lib:format("T~2..0B~2..0B~2..0B,",[H, M, S])
+        ++ gen_frac(Utime/1000000,Pos)
+    );
+format_time({H,M,S}, Utime, {general_extended_frac,Pos}) ->
+    lists:flatten(
+        io_lib:format("T~2..0B:~2..0B:~2..0B,",[H, M, S])
+        ++ gen_frac(Utime/1000000,Pos)
+    );
+format_time({H,M,S}, Utime, {general_minute_frac,Pos}) ->
+    lists:flatten(
+        io_lib:format("T~2..0B~2..0B,",[H, M])
+        ++ gen_frac((Utime/1000000+S)/60,Pos)
+    );
+format_time({H,M,S}, Utime, {general_minute_extended_frac,Pos}) ->
+    lists:flatten(
+        io_lib:format("T~2..0B:~2..0B,",[H, M])
+        ++ gen_frac((Utime/1000000+S)/60,Pos)
+    );
+format_time({H,M,S}, Utime, {general_hour_frac,Pos}) ->
+    lists:flatten(
+        io_lib:format("T~2..0B,",[H])
+        ++ gen_frac((Utime/1000000+S+M*60)/3600,Pos)
+    );
 format_time(_Time, _Utime, Format) ->
-    throw({error, {unsupported_format,Format}}).
+    throw({error, {unknown_format,Format}}).
+
+gen_frac(Value,Positions) ->
+    Format=lists:flatten(io_lib:format("~~.~Bf",[Positions])),
+    [[$0,$.|Ret]]=io_lib:format(Format,[Value]),
+    Ret.
+
 
 %%--------------------------------------------------------------------
 %% @doc:	Parses localtime (time with timezone)
@@ -436,10 +483,7 @@ parse_datetime(String) when is_list(String)->
 -spec(format_datetime(Date::calendar:date(), Time::calendar:time(), Utime::non_neg_integer() ) -> nonempty_string()).
 
 format_datetime(Date, Time, Utime) ->
-    if
-        Utime>0 -> ?MODULE:format_datetime(Date, Time, Utime, calendar, general_frac);
-        true -> ?MODULE:format_datetime(Date, Time, Utime, calendar, general)
-    end.
+    ?MODULE:format_date(Date) ++ ?MODULE:format_time(Time,Utime).
 
 %%--------------------------------------------------------------------
 %% @doc:    Formats local time according to supplied format

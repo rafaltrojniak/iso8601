@@ -743,6 +743,24 @@ gen_localtime_test() ->
     meck:unload(),
     ok.
 
+gen_localtime_default_test() ->
+    meck:new(iso8601,[passthrough]),
+    meck:expect(iso8601,format_time,
+                fun(Time,Utime) ->
+                        ?assertEqual({10,5,2},Time),
+                        ?assertEqual(0,Utime),
+                        "T100502"
+                end),
+    meck:expect(iso8601,format_timezone,
+                fun(TZ) ->
+                        ?assertEqual(36000,TZ),
+                        "+1000"
+                end),
+    ?assertEqual("T100502+1000",iso8601:format_localtime({10,5,2},0,36000)),
+    ?assert(meck:validate(iso8601)),
+    meck:unload(),
+    ok.
+
 gen_localdatetime_test() ->
     meck:new(iso8601,[passthrough]),
     meck:expect(iso8601,format_date,
@@ -768,3 +786,140 @@ gen_localdatetime_test() ->
     ?assert(meck:validate(iso8601)),
     meck:unload(),
     ok.
+
+gen_localdatetime_default_test() ->
+    meck:new(iso8601,[passthrough]),
+    meck:expect(iso8601,format_date,
+                fun(Date) ->
+                        ?assertEqual({2013,1,1},Date),
+                        "20130101"
+                end),
+    meck:expect(iso8601,format_time,
+                fun(Time,Utime) ->
+                        ?assertEqual({10,5,2},Time),
+                        ?assertEqual(0,Utime),
+                        "T100502"
+                end),
+    meck:expect(iso8601,format_timezone,
+                fun(TZ) ->
+                        ?assertEqual(36000,TZ),
+                        "+1000"
+                end),
+    ?assertEqual("20130101T100502+1000",iso8601:format_localdatetime({2013,1,1},{10,5,2},0,36000)),
+    ?assert(meck:validate(iso8601)),
+    meck:unload(),
+    ok.
+
+gen_datetime_test() ->
+    meck:new(iso8601,[passthrough]),
+    meck:expect(iso8601,format_date,
+                fun(Date,Format) ->
+                        ?assertEqual({2013,1,1},Date),
+                        ?assertEqual(calendar,Format),
+                        "20130101"
+                end),
+    meck:expect(iso8601,format_time,
+                fun(Time,Utime,Format) ->
+                        ?assertEqual({10,5,2},Time),
+                        ?assertEqual(0,Utime),
+                        ?assertEqual(general,Format),
+                        "T100502"
+                end),
+    ?assertEqual("20130101T100502",iso8601:format_datetime({2013,1,1},{10,5,2},0,calendar,general)),
+    ?assert(meck:validate(iso8601)),
+    meck:unload(),
+    ok.
+
+gen_timezone_test() ->
+    meck:new(iso8601,[passthrough]),
+    meck:expect(iso8601,format_timezone,
+                fun(TZ,Format) ->
+                        ?assertEqual(36000,TZ),
+                        ?assertEqual(minute,Format),
+                        "+1000"
+                end),
+    ?assertEqual("+1000",iso8601:format_timezone(36000)),
+    ?assert(meck:validate(iso8601)),
+    meck:unload(),
+    ok.
+
+format_datetime_defualt_test() ->
+    meck:new(iso8601,[passthrough]),
+    meck:expect(iso8601,format_date,
+                fun(Date) ->
+                        ?assertEqual({2013,1,1},Date),
+                        "20130101"
+                end),
+    meck:expect(iso8601,format_time,
+                fun(Time,Utime) ->
+                        ?assertEqual({10,5,2},Time),
+                        ?assertEqual(0,Utime),
+                        "T100502"
+                end),
+    ?assertEqual("20130101T100502",iso8601:format_datetime({2013,1,1},{10,5,2},0)),
+    ?assert(meck:validate(iso8601)),
+    meck:unload(),
+    ok.
+
+format_time_defualt_test() ->
+    meck:new(iso8601,[passthrough]),
+    meck:expect(iso8601,format_time,
+                fun(Time,Utime,Format) ->
+                        ?assertEqual({10,5,2},Time),
+                        ?assertEqual(0,Utime),
+                        ?assertEqual(general,Format),
+                        "T100502"
+                end),
+    ?assertEqual("T100502",iso8601:format_time({10,5,2},0)),
+    ?assert(meck:validate(iso8601)),
+    meck:unload(),
+    ok.
+
+format_time_defualt_utime1_test() ->
+    meck:new(iso8601,[passthrough]),
+    meck:expect(iso8601,format_time,
+                fun(Time,Utime,Format) ->
+                        ?assertEqual({10,5,2},Time),
+                        ?assertEqual(10,Utime),
+                        ?assertEqual({general_frac,6},Format),
+                        "T100502,000010"
+                end),
+    ?assertEqual("T100502,000010",iso8601:format_time({10,5,2},10)),
+    ?assert(meck:validate(iso8601)),
+    meck:unload(),
+    ok.
+
+format_time_defualt_utime2_test() ->
+    meck:new(iso8601,[passthrough]),
+    meck:expect(iso8601,format_time,
+                fun(Time,Utime,Format) ->
+                        ?assertEqual({10,5,2},Time),
+                        ?assertEqual(100,Utime),
+                        ?assertEqual({general_frac,6},Format),
+                        "T100502,000100"
+                end),
+    ?assertEqual("T100502,000100",iso8601:format_time({10,5,2},100)),
+    ?assert(meck:validate(iso8601)),
+    meck:unload(),
+    ok.
+
+format_time_test_() ->
+    [
+        ?_assertEqual( "T010101", iso8601:format_time({1,1,1},0,general)),
+        ?_assertEqual( "T101010", iso8601:format_time({10,10,10},0,general)),
+        ?_assertEqual( "T01:01:01", iso8601:format_time({1,1,1},0,general_extended)),
+        ?_assertEqual( "T0101", iso8601:format_time({1,1,1},0,general_minute)),
+        ?_assertEqual( "T01:01", iso8601:format_time({1,1,1},0,general_minute_extended)),
+        ?_assertEqual( "T01", iso8601:format_time({1,1,1},0,general_hour)),
+
+        ?_assertEqual( "T010101,123", iso8601:format_time({1,1,1},123456,{general_frac,3})),
+        ?_assertEqual( "T101010,123", iso8601:format_time({10,10,10},123456,{general_frac,3})),
+        ?_assertEqual( "T01:01:01,123", iso8601:format_time({1,1,1},123456,{general_extended_frac,3})),
+        ?_assertEqual( "T0101,019", iso8601:format_time({1,1,1},123456,{general_minute_frac,3})),
+        ?_assertEqual( "T01:01,019", iso8601:format_time({1,1,1},123456,{general_minute_extended_frac,3})),
+        ?_assertEqual( "T01,017", iso8601:format_time({1,1,1},123456,{general_hour_frac,3})),
+        ?_assertEqual( "T01,02", iso8601:format_time({1,1,1},123456,{general_hour_frac,2})),
+        ?_assertEqual( "T01,0", iso8601:format_time({1,1,1},123456,{general_hour_frac,1})),
+
+        ?_assertThrow( {error,{unknown_format,wtf}}, iso8601:format_time({1,1,1},0,wtf))
+    ].
