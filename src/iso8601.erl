@@ -180,7 +180,7 @@ parse_date(String) when is_list(String) ->
 -spec(format_date(calendar:date()) -> nonempty_string() ).
 
 format_date(Date) ->
-	?MODULE:format_date(Date,calendar_extended).
+	?MODULE:format_date(Date,calendar).
 
 %%--------------------------------------------------------------------
 %% @doc: Generate string representing date in specific format

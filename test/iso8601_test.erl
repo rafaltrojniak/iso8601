@@ -333,16 +333,6 @@ apply_date_tokens_test_() ->
             weekday_extended
         ]).
 
-
-format_date_test_() ->
-    [
-        ?_assertEqual(
-            iso8601_phases:get_date(calendar_extend_1, input),
-            iso8601:format_date(
-                iso8601_phases:get_date(calendar_extend_1,value)
-            ))
-    ].
-
 format_date_formatted_test_() ->
     lists:map(
         fun(X) ->
@@ -371,6 +361,19 @@ format_date_formatted_test_() ->
             weekday,
             weekday_extended
         ]).
+
+gen_date_default_test() ->
+    meck:new(iso8601,[passthrough]),
+    meck:expect(iso8601,format_date,
+                fun(Date,Format) ->
+                        ?assertEqual({2013,1,1},Date),
+                        ?assertEqual(calendar,Format),
+                        "20130101"
+                end),
+    ?assertEqual("20130101",iso8601:format_date({2013,1,1})),
+    ?assert(meck:validate(iso8601)),
+    meck:unload(),
+    ok.
 
 format_date_edges_test_() ->
     [
