@@ -405,6 +405,42 @@ apply_time_tokens_test_() ->
         general_minute_frac_2
     ]).
 
+apply_time_tokens_edges_test_() ->
+    [
+        ?_assertThrow( {error, {yearday_too_low,{0,0}}}, iso8601:apply_date_tokens({0,1,1},[{yearday,0}])),
+        ?_assertEqual( {0,1,1}, iso8601:apply_date_tokens({0,1,1},[{yearday,1}])),
+        ?_assertEqual( {0,12,31}, iso8601:apply_date_tokens({0,1,1},[{yearday,366}])),
+        ?_assertThrow( {error, {yearday_too_big,{0,367}}}, iso8601:apply_date_tokens({0,1,1},[{yearday,367}])),
+
+        ?_assertThrow( {error, {weeknumber_too_low,0}}, iso8601:apply_date_tokens({0,1,1},[{weeknumber,0}])),
+        ?_assertEqual( {0,1,3}, iso8601:apply_date_tokens({0,1,1},[{weeknumber,1}])),
+        % Weeks count in year tests
+        ?_assertEqual( {2009,12,28}, iso8601:apply_date_tokens({2009,1,1},[{weeknumber,53}])),
+        ?_assertThrow( {error, {weeknumber_too_big,{2009,54}}}, iso8601:apply_date_tokens({2009,1,1},[{weeknumber,54}])),
+        ?_assertEqual( {2013,12,23}, iso8601:apply_date_tokens({2013,1,1},[{weeknumber,52}])),
+        ?_assertThrow( {error, {weeknumber_too_big,{2013,53}}}, iso8601:apply_date_tokens({2013,1,1},[{weeknumber,53}])),
+        % Week shift on beginning/end
+        ?_assertEqual( {2012,1,1}, iso8601:apply_date_tokens({2011,1,1},[{weeknumber,52},{weekday,7}])),
+        ?_assertEqual( {2012,12,31}, iso8601:apply_date_tokens({2013,1,1},[{weeknumber,1},{weekday,1}])),
+
+        ?_assertThrow( {error, {weekday_too_low,0}}, iso8601:apply_date_tokens({0,1,1},[{weeknumber,1},{weekday,0}])),
+        ?_assertEqual( {0,1,3}, iso8601:apply_date_tokens({0,1,1},[{weeknumber,1},{weekday,1}])),
+        ?_assertEqual( {0,1,9}, iso8601:apply_date_tokens({0,1,1},[{weeknumber,1},{weekday,7}])),
+        ?_assertThrow( {error, {weekday_too_big,8}}, iso8601:apply_date_tokens({0,1,1},[{weeknumber,1},{weekday,8}])),
+
+        ?_assertEqual( {1,12,31}, iso8601:apply_date_tokens({1,1,1},[{yearday,365}])),
+        ?_assertThrow( {error, {yearday_too_big,{1,366}}}, iso8601:apply_date_tokens({1,1,1},[{yearday,366}])),
+
+        ?_assertThrow( {error, {month_too_low,0}}, iso8601:apply_date_tokens({0,1,1},[{month,0}])),
+        ?_assertEqual( {0,1,1}, iso8601:apply_date_tokens({0,1,1},[{month,1}])),
+        ?_assertEqual( {0,12,1}, iso8601:apply_date_tokens({0,1,1},[{month,12}])),
+        ?_assertThrow( {error, {month_too_big,13}}, iso8601:apply_date_tokens({0,1,1},[{month,13}])),
+        ?_assertThrow( {error, {day_too_low,0}}, iso8601:apply_date_tokens({0,1,1},[{monthday,0}])),
+        ?_assertEqual( {0,1,1}, iso8601:apply_date_tokens({0,1,1},[{monthday,1}])),
+        ?_assertEqual( {0,1,31}, iso8601:apply_date_tokens({0,1,1},[{monthday,31}])),
+        ?_assertThrow( {error, {day_too_big,{0,1,32}}}, iso8601:apply_date_tokens({0,1,1},[{monthday,32}]))
+    ].
+
 parse_time_test() ->
     Input   = iso8601_phases:get_time(general_1, input),
     Lexer   = iso8601_phases:get_time(general_1, lexer),
@@ -620,4 +656,30 @@ parse_localdatetime_wrongformat_test() ->
     ?assert(meck:validate(iso8601_parser)),
     meck:unload(iso8601_lexer),
     meck:unload(iso8601_parser),
+    ok.
+
+parse_localdatetime_lexfail_test() ->
+    Input="poc",
+    Lexer={error, {1,iso8601_lexer,{illegal,"p"}} ,1 },
+    meck:new(iso8601_lexer),
+    meck:expect(iso8601_lexer,string,fun(_Input) -> ?assertEqual(Input,_Input), Lexer end),
+    ?assertThrow({error, {lexical_analysis_failed,_,1}},iso8601:parse_localdatetime(Input)),
+    ?assert(meck:validate(iso8601_lexer)),
+    meck:unload(iso8601_lexer),
+    ok.
+
+parse_localdatetime_parserfail_test() ->
+    Input=":::",
+    Lexer={ok,[ {time_separator,":",":"},{time_separator,":",":"}, {time_separator,":",":"}],1},
+    LexerTokens=element(2,Lexer),
+    Parser= {error,{":",iso8601_parser, ["syntax error before: ",["\":\""]]}},
+    meck:new(iso8601_lexer),
+    meck:new(iso8601_parser),
+    meck:expect(iso8601_lexer,string,fun(_Input) -> ?assertEqual(Input,_Input), Lexer end),
+    meck:expect(iso8601_parser,parse,fun(_Tokens) -> ?assertEqual(LexerTokens,_Tokens), Parser end),
+    ?assertThrow({error, {parsing_failed,_}},iso8601:parse_localdatetime(Input)),
+    ?assert(meck:validate(iso8601_parser)),
+    ?assert(meck:validate(iso8601_lexer)),
+    meck:unload(iso8601_parser),
+    meck:unload(iso8601_lexer),
     ok.

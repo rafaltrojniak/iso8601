@@ -307,9 +307,9 @@ apply_date_tokens({Y,M,_},[{monthday,Day}|Elements]) ->
 apply_date_tokens({Y,_,_},[{weeknumber,Week},{weekday,Day}|Elements]) ->
     if
         Day =< 0 ->
-            throw ({error,{day_too_low,Day }});
+            throw ({error,{weekday_too_low,Day }});
         Day >= 8 ->
-            throw ({error,{day_too_big,{Y,Day} }});
+            throw ({error,{weekday_too_big,Day }});
         true ->
             ok
     end,
@@ -329,11 +329,11 @@ apply_date_tokens({Y,_,_},[{weeknumber,Week}|Elements]) ->
 apply_date_tokens({Year,_,_},[{yearday,Day}|Elements]) ->
     case {calendar:is_leap_year(Year) , Day} of
         {true,Day} when Day>366
-            -> throw({error, {day_too_big, {Year, Day}}});
+            -> throw({error, {yearday_too_big, {Year, Day}}});
         {false, Day} when Day>365
-            -> throw({error, {day_too_big, {Year, Day}}});
+            -> throw({error, {yearday_too_big, {Year, Day}}});
         {_, Day} when Day<1
-            -> throw({error, {day_too_small, {Year, Day}}});
+            -> throw({error, {yearday_too_low, {Year, Day}}});
         _Other -> ok
     end,
     Date=
@@ -390,9 +390,9 @@ check_week_number(Y,Week) ->
 		),
 		if
 			Week < 1 ->
-				throw ({error,{week_too_small,{Y,Week} }});
+				throw ({error,{weeknumber_too_low,Week}});
 			Week > LastWeekNumber ->
-				throw ({error,{week_too_big,{Y,Week} }});
+				throw ({error,{weeknumber_too_big,{Y,Week} }});
 			true -> ok
 		end.
 
@@ -493,8 +493,8 @@ parse(String) when is_list(String) ->
         {error, Info } ->
           throw({error, {parsing_failed,Info}})
       end;
-    {error, Info} ->
-      throw({error, {lexical_analysis_failed,Info}})
+    {error, Info, Line} ->
+      throw({error, {lexical_analysis_failed,Info, Line}})
   end.
 
 % Helper functions
