@@ -375,6 +375,12 @@ format_date_formatted_test_() ->
             weekday_extended
         ]).
 
+format_date_edges_test_() ->
+    [
+            ?_assertThrow({error,{unknown_format,wrongFormat}}, iso8601:format_date({1,1,1}, wrongFormat)),
+            ?_assertThrow({error,{unknown_data,{1,1,"abc"}}}, iso8601:format_date({1,1,"abc"}, calendar))
+    ].
+
 apply_time_tokens_test_() ->
     lists:map(
         fun(X) ->
@@ -405,7 +411,7 @@ apply_time_tokens_test_() ->
         general_minute_frac_2
     ]).
 
-apply_time_tokens_edges_test_() ->
+apply_date_tokens_edges_test_() ->
     [
         ?_assertThrow( {error, {yearday_too_low,{0,0}}}, iso8601:apply_date_tokens({0,1,1},[{yearday,0}])),
         ?_assertEqual( {0,1,1}, iso8601:apply_date_tokens({0,1,1},[{yearday,1}])),
@@ -438,7 +444,33 @@ apply_time_tokens_edges_test_() ->
         ?_assertThrow( {error, {day_too_low,0}}, iso8601:apply_date_tokens({0,1,1},[{monthday,0}])),
         ?_assertEqual( {0,1,1}, iso8601:apply_date_tokens({0,1,1},[{monthday,1}])),
         ?_assertEqual( {0,1,31}, iso8601:apply_date_tokens({0,1,1},[{monthday,31}])),
-        ?_assertThrow( {error, {day_too_big,{0,1,32}}}, iso8601:apply_date_tokens({0,1,1},[{monthday,32}]))
+        ?_assertThrow( {error, {day_too_big,{0,1,32}}}, iso8601:apply_date_tokens({0,1,1},[{monthday,32}])),
+
+        ?_assertThrow( {unknown_token, {unknownToken,32}}, iso8601:apply_date_tokens({0,1,1},[{unknownToken,32}]))
+    ].
+
+apply_time_tokens_edges_test_() ->
+    [
+        ?_assertEqual( {{2,24,0},0}, iso8601:apply_time_tokens({0,0,0},0,[{frac,3600*24,"1"}])),
+        ?_assertEqual( {{0,6,0},0}, iso8601:apply_time_tokens({0,0,0},0,[{frac,3600,"1"}])),
+        ?_assertEqual( {{0,0,6},0}, iso8601:apply_time_tokens({0,0,0},0,[{frac,60,"1"}])),
+        ?_assertEqual( {{0,0,0},999999}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"999999"}])),
+        ?_assertEqual( {{0,0,0},900000}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"9"}])),
+        ?_assertEqual( {{0,0,0},90000}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"09"}])),
+        ?_assertEqual( {{0,0,0},9000}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"009"}])),
+        ?_assertEqual( {{0,0,0},900}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"0009"}])),
+        ?_assertEqual( {{0,0,0},90}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"00009"}])),
+        ?_assertEqual( {{0,0,0},100000}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"1"}])),
+        ?_assertEqual( {{0,0,0},10000}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"01"}])),
+        ?_assertEqual( {{0,0,0},1000}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"001"}])),
+        ?_assertEqual( {{0,0,0},100}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"0001"}])),
+        ?_assertEqual( {{0,0,0},10}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"00001"}])),
+        ?_assertEqual( {{0,0,0},1}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"000001"}])),
+        ?_assertEqual( {{0,0,0},0}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"0000001"}])),
+        ?_assertEqual( {{0,0,0},0}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"0000004"}])),
+        ?_assertEqual( {{0,0,0},1}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"0000005"}])),
+        ?_assertEqual( {{0,0,0},1}, iso8601:apply_time_tokens({0,0,0},0,[{frac,1,"0000006"}])),
+        ?_assertThrow( {unknown_token, {unknownToken,32}}, iso8601:apply_time_tokens({0,0,0},0,[{unknownToken,32}]))
     ].
 
 parse_time_test() ->
