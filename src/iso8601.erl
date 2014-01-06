@@ -133,6 +133,7 @@
 %%
 %% Specifies timezone format
 %%
+%% TypeName - Section of the specification - Format - Example
 %% <dl>
 %% <dt>utc</dt>
 %%	<dd> 4.2.4 - UTC  - Z - Z</dd>
@@ -146,7 +147,10 @@
 %%
 
 
--type time_difference() :: {-12..12,0..59 }.
+-type time_difference() :: integer().
+%%
+%% Time difference in seconds
+%%
 
 -define( is_num(X), ( is_integer(X) andalso X >= $0 andalso X =< $9) ).
 -define( startDate, {0,1,1}).
@@ -173,7 +177,7 @@ parse_date(String) when is_list(String) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @equiv format_date(Date,calendar_extended)
+%% @equiv format_date(Date,calendar)
 %% @end
 %%--------------------------------------------------------------------
 
@@ -183,8 +187,7 @@ format_date(Date) ->
 	?MODULE:format_date(Date,calendar).
 
 %%--------------------------------------------------------------------
-%% @doc: Generate string representing date in specific format
-%% Function uses one of the many formats to convert date to string
+%% @doc: Formats date according to supplied format
 %% @end
 %%--------------------------------------------------------------------
 
@@ -391,7 +394,7 @@ parse_localtime(String) when is_list(String) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @doc:    Formats local time wigh general, or general_frac format
+%% @doc:    Formats local time with default format
 %% @end
 %%--------------------------------------------------------------------
 
@@ -414,7 +417,7 @@ format_localtime(Time, Utime, TZ, Format, Format_TZ) ->
     ?MODULE:format_time(Time,Utime, Format) ++ ?MODULE:format_timezone(TZ,Format_TZ).
 
 %%--------------------------------------------------------------------
-%% @doc:    Formats local time according to supplied format
+%% @doc:    Formats timezone  with defualt format
 %% @end
 %%--------------------------------------------------------------------
 
@@ -424,7 +427,7 @@ format_timezone(TZ)  ->
     ?MODULE:format_timezone(TZ,minute).
 
 %%--------------------------------------------------------------------
-%% @doc:    Formats local time according to supplied format
+%% @doc:    Formats timeozne according to supplied format
 %% @end
 %%--------------------------------------------------------------------
 
@@ -453,7 +456,7 @@ format_timezone(TZ, Format) when is_integer(TZ) andalso is_atom(Format) ->
 
 
 %%--------------------------------------------------------------------
-%% @doc:	Parses datetime (time with date)
+%% @doc:	Parses datetime with default format
 %% @end
 %%--------------------------------------------------------------------
 
@@ -476,7 +479,7 @@ parse_datetime(String) when is_list(String)->
     end.
 
 %%--------------------------------------------------------------------
-%% @doc:    Formats local time wigh general, or general_frac format
+%% @doc:    Formats datetime with default format
 %% @end
 %%--------------------------------------------------------------------
 
@@ -486,7 +489,7 @@ format_datetime(Date, Time, Utime) ->
     ?MODULE:format_date(Date) ++ ?MODULE:format_time(Time,Utime).
 
 %%--------------------------------------------------------------------
-%% @doc:    Formats local time according to supplied format
+%% @doc:    Formats datetime according to supplied format
 %% @end
 %%--------------------------------------------------------------------
 
@@ -498,7 +501,7 @@ format_datetime(Date, Time, Utime, DateFormat, TimeFormat) ->
     ?MODULE:format_date(Date, DateFormat) ++ ?MODULE:format_time(Time,Utime, TimeFormat).
 
 %%--------------------------------------------------------------------
-%% @doc:	Parses local datetime (date + time + timezone)
+%% @doc:	Parses local datetime
 %% @end
 %%--------------------------------------------------------------------
 
@@ -523,7 +526,7 @@ parse_localdatetime(String) when is_list(String) ->
             throw({error, {format_mismatch, element(1,_Other)}})
     end.
 %%--------------------------------------------------------------------
-%% @doc:    Formats local time wigh general, or general_frac format
+%% @doc:    Formats local datetime using default format
 %% @end
 %%--------------------------------------------------------------------
 
@@ -533,7 +536,7 @@ format_localdatetime(Date, Time, Utime, TZ) ->
     ?MODULE:format_date(Date) ++ ?MODULE:format_time(Time,Utime) ++ ?MODULE:format_timezone(TZ).
 
 %%--------------------------------------------------------------------
-%% @doc:    Formats local time according to supplied format
+%% @doc:    Formats local datetime according to supplied format
 %% @end
 %%--------------------------------------------------------------------
 
@@ -547,6 +550,7 @@ format_localdatetime(Date, Time, Utime, TZ, DateFormat, TimeFormat, TZFormat) ->
 
 %%--------------------------------------------------------------------
 %% @doc:    Apply tokens from parser to build date
+%% @hidden
 %% @end
 %%--------------------------------------------------------------------
 
@@ -616,6 +620,7 @@ apply_date_tokens(Date,[]) ->
 
 %%--------------------------------------------------------------------
 %% @doc:    Apply tokens from parser to build time
+%% @hidden
 %% @end
 %%--------------------------------------------------------------------
 apply_time_tokens({_,M,S},U,[{hour,H}|Elements]) ->
@@ -672,6 +677,7 @@ check_week_number(Y,Week) ->
 
 %%--------------------------------------------------------------------
 %% @doc:    Builds timezone difference from tokens
+%% @hidden
 %% @end
 %%--------------------------------------------------------------------
 
@@ -689,6 +695,7 @@ apply_timezone_tokens(Direction, Tokens) ->
 
 %%--------------------------------------------------------------------
 %% @doc:    Runs lexer and parser to produce tokens from strings
+%% @hidden
 %% @end
 %%--------------------------------------------------------------------
 parse(String) when is_list(String) ->
