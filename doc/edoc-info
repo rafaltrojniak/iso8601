@@ -1,0 +1,4 @@
+%% encoding: UTF-8
+{application,iso8601}.
+{packages,[]}.
+{modules,[iso8601,iso8601_lexer,iso8601_parser]}.

@@ -1,0 +1,227 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Module iso8601</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" title="EDoc">
+</head>
+<body bgcolor="white">
+<div class="navbar"><a name="#navbar_top"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<hr>
+
+<h1>Module iso8601</h1>
+<ul class="index"><li><a href="#description">Description</a></li><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>
+   This application allows to parse and format date, time, intervals
+   and recurring intervals as described in ISO8601 standard.
+<p>Copyright � (C) 2013 Rafał Trójniak. All Rights Reserved.</p>
+
+<p><b>Authors:</b> Rafał Trójniak (<a href="mailto:rafal@trojniak.net"><tt>rafal@trojniak.net</tt></a>).</p>
+
+<h2><a name="description">Description</a></h2>
+   This application allows to parse and format date, time, intervals
+   and recurring intervals as described in ISO8601 standard
+<h2><a name="types">Data Types</a></h2>
+
+<h3 class="typedecl"><a name="type-date_format">date_format()</a></h3>
+<p><tt>date_format() = calendar | calendar_extended | calendar_month | calendar_year | calendar_century | ordinal | ordinal_extended | weekday | weekday_extended | week | week_extended</tt></p>
+<p><p>   
+Specifies date format to parse/produce</p>
+ 
+  TypeName - Section of the specification - Format - Example
+  <dl>
+  <dt>calendar </dt>
+ 	<dd> 4.1.2.2 basic - YYYYMMDD - 20130702</dd>
+  <dt>calendar_extended </dt>
+ 	<dd> 4.1.2.2 extended - YYYY-MM-DD - 2013-07-02</dd>
+  <dt>calendar_month </dt>
+ 	<dd> 4.1.2.3 a - YYYY-MM - 2013-07</dd>
+  <dt>calendar_year </dt>
+ 	<dd> 4.1.2.3 b - YYYY - 2013</dd>
+  <dt>calendar_century </dt>
+ 	<dd> 4.1.2.3 c  - YY - 20</dd>
+  <dt>ordinal </dt>
+ 	<dd> 4.1.3.2 basic - YYYYDDD - 2013302</dd>
+  <dt>ordinal_extended </dt>
+ 	<dd> 4.1.3.2 extended - YYYY-DDD - 2013-302</dd>
+  <dt>weekday </dt>
+ 	<dd> 4.1.4.2 Extended - YYYY-Www-D -: 1985-W15-5</dd>
+  <dt>weekday_extended </dt>
+ 	<dd> 4.1.4.2 Basic - YYYYWwwD - 1985W155</dd>
+  <dt>week </dt>
+ 	<dd> 4.1.4.3 Basic - YYYYWww - 1985W15</dd>
+  <dt>week_extended  </dt>
+ 	<dd> 4.1.4.3 Extended - YYYY-Www - 1985-W15</dd>
+  </dl></p>
+
+<h3 class="typedecl"><a name="type-time_difference">time_difference()</a></h3>
+<p><tt>time_difference() = integer()</tt></p>
+<p> 
+  Time difference in seconds
+ </p>
+
+<h3 class="typedecl"><a name="type-time_format">time_format()</a></h3>
+<p><tt>time_format() = general | general_extended | general_minute | general_minute_extended | general_hour | general_frac | general_extended_frac | general_minute_frac | general_minute_extended_frac | general_hour_frac</tt></p>
+<p><p>   
+Specifies time format to parse/produce</p>
+ 
+  TypeName - Section of the specification - Format - Example
+  <dl>
+  <dt>general</dt>
+ 	<dd> 4.2.2.2 basic - Thhmmss - 230550</dd>
+  <dt>general_extended</dt>
+ 	<dd> 4.2.2.2 extended - Thh:mm:ss - 23:05:50</dd>
+  <dt>general_minute</dt>
+ 	<dd> 4.2.2.3.a basic - Thhmm - 2305</dd>
+  <dt>general_minute_extended</dt>
+ 	<dd> 4.2.2.3.a extended - Thh:mm - 23:05</dd>
+  <dt>general_hour</dt>
+ 	<dd> 4.2.2.3.b basic - Thh - 23</dd>
+  <dt>general_frac</dt>
+ 	<dd> 4.2.2.4 basic - Thhmmss,ss* - 230550,12</dd>
+  <dt>general_extended_frac</dt>
+ 	<dd> 4.2.2.4 extended - Thh:mm:ss,ss* - 23:05:50,12</dd>
+  <dt>general_minute_frac</dt>
+ 	<dd> 4.2.2.4.a basic - Thhmm,mm* - 2305,12</dd>
+  <dt>general_minute_extended_frac</dt>
+ 	<dd> 4.2.2.4.a extended - Thh:mm,mm* - 23:05,12</dd>
+  <dt>general_hour_frac</dt>
+ 	<dd> 4.2.2.4.b basic - Thh,hh* - 23,12</dd>
+ </dl>
+ </p>
+
+<h3 class="typedecl"><a name="type-timezone_format">timezone_format()</a></h3>
+<p><tt>timezone_format() = utc | hour | minute | minute_extended</tt></p>
+<p><p>   
+Specifies timezone format</p>
+ 
+  TypeName - Section of the specification - Format - Example
+  <dl>
+  <dt>utc</dt>
+ 	<dd> 4.2.4 - UTC  - Z - Z</dd>
+  <dt>hour</dt>
+ 	<dd> 4.2.5.1 - hour - [+-]hh - +01</dd>
+  <dt>minute</dt>
+ 	<dd> 4.2.5.1 - minute - [+-]hhmm - +0100</dd>
+  <dt>minute</dt>
+ 	<dd> 4.2.5.1 - minute_extended - [+-]hh:mm - +01:00</dd>
+ </dl>
+ </p>
+
+<h2><a name="index">Function Index</a></h2>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#format_date-1">format_date/1</a></td><td>Equivalent to <a href="#format_date-2"><tt>format_date(Date, calendar)</tt></a>.
+</td></tr>
+<tr><td valign="top"><a href="#format_date-2">format_date/2</a></td><td> Formats date according to supplied format.</td></tr>
+<tr><td valign="top"><a href="#format_datetime-3">format_datetime/3</a></td><td>    Formats datetime with default format.</td></tr>
+<tr><td valign="top"><a href="#format_datetime-5">format_datetime/5</a></td><td>    Formats datetime according to supplied format.</td></tr>
+<tr><td valign="top"><a href="#format_localdatetime-4">format_localdatetime/4</a></td><td>    Formats local datetime using default format.</td></tr>
+<tr><td valign="top"><a href="#format_localdatetime-7">format_localdatetime/7</a></td><td>    Formats local datetime according to supplied format.</td></tr>
+<tr><td valign="top"><a href="#format_localtime-3">format_localtime/3</a></td><td>    Formats local time with default format.</td></tr>
+<tr><td valign="top"><a href="#format_localtime-5">format_localtime/5</a></td><td>    Formats local time according to supplied format.</td></tr>
+<tr><td valign="top"><a href="#format_time-2">format_time/2</a></td><td>    Formats time wigh general, or general_frac format.</td></tr>
+<tr><td valign="top"><a href="#format_time-3">format_time/3</a></td><td>    Formats time according to supplied format.</td></tr>
+<tr><td valign="top"><a href="#format_timezone-1">format_timezone/1</a></td><td>    Formats timezone  with defualt format.</td></tr>
+<tr><td valign="top"><a href="#format_timezone-2">format_timezone/2</a></td><td>    Formats timeozne according to supplied format.</td></tr>
+<tr><td valign="top"><a href="#parse_date-1">parse_date/1</a></td><td>	Parses dates autodetecting one of formats specified in standard.</td></tr>
+<tr><td valign="top"><a href="#parse_datetime-1">parse_datetime/1</a></td><td>	Parses datetime with default format.</td></tr>
+<tr><td valign="top"><a href="#parse_localdatetime-1">parse_localdatetime/1</a></td><td>	Parses local datetime.</td></tr>
+<tr><td valign="top"><a href="#parse_localtime-1">parse_localtime/1</a></td><td>	Parses localtime (time with timezone).</td></tr>
+<tr><td valign="top"><a href="#parse_time-1">parse_time/1</a></td><td>	Parses time in specified format.</td></tr>
+</table>
+
+<h2><a name="functions">Function Details</a></h2>
+
+<h3 class="function"><a name="format_date-1">format_date/1</a></h3>
+<div class="spec">
+<p><tt>format_date(Date::<a href="calendar.html#type-date">calendar:date()</a>) -&gt; nonempty_string()</tt><br></p>
+</div><p>Equivalent to <a href="#format_date-2"><tt>format_date(Date, calendar)</tt></a>.</p>
+
+
+<h3 class="function"><a name="format_date-2">format_date/2</a></h3>
+<div class="spec">
+<p><tt>format_date(Date::<a href="calendar.html#type-date">calendar:date()</a>, Type::<a href="#type-date_format">date_format()</a>) -&gt; nonempty_string()</tt><br></p>
+</div><p> Formats date according to supplied format</p>
+
+<h3 class="function"><a name="format_datetime-3">format_datetime/3</a></h3>
+<div class="spec">
+<p><tt>format_datetime(Date::<a href="calendar.html#type-date">calendar:date()</a>, Time::<a href="calendar.html#type-time">calendar:time()</a>, Utime::non_neg_integer()) -&gt; nonempty_string()</tt><br></p>
+</div><p>    Formats datetime with default format</p>
+
+<h3 class="function"><a name="format_datetime-5">format_datetime/5</a></h3>
+<div class="spec">
+<p><tt>format_datetime(Date::<a href="calendar.html#type-date">calendar:date()</a>, Time::<a href="calendar.html#type-time">calendar:time()</a>, Utime::non_neg_integer(), DateFormat::<a href="#type-date_format">date_format()</a>, TimeFormat::<a href="#type-time_format">time_format()</a>) -&gt; nonempty_string()</tt><br></p>
+</div><p>    Formats datetime according to supplied format</p>
+
+<h3 class="function"><a name="format_localdatetime-4">format_localdatetime/4</a></h3>
+<div class="spec">
+<p><tt>format_localdatetime(Date::<a href="calendar.html#type-date">calendar:date()</a>, Time::<a href="calendar.html#type-time">calendar:time()</a>, Utime::non_neg_integer(), TZ::integer()) -&gt; nonempty_string()</tt><br></p>
+</div><p>    Formats local datetime using default format</p>
+
+<h3 class="function"><a name="format_localdatetime-7">format_localdatetime/7</a></h3>
+<div class="spec">
+<p><tt>format_localdatetime(Date::<a href="calendar.html#type-date">calendar:date()</a>, Time::<a href="calendar.html#type-time">calendar:time()</a>, Utime::non_neg_integer(), TZ::integer(), DateFormat::<a href="#type-date_format">date_format()</a>, TimeFormat::<a href="#type-time_format">time_format()</a>, TZFormat::<a href="#type-timezone_format">timezone_format()</a>) -&gt; nonempty_string()</tt><br></p>
+</div><p>    Formats local datetime according to supplied format</p>
+
+<h3 class="function"><a name="format_localtime-3">format_localtime/3</a></h3>
+<div class="spec">
+<p><tt>format_localtime(Time::<a href="calendar.html#type-time">calendar:time()</a>, Utime::non_neg_integer(), TZ::integer()) -&gt; nonempty_string()</tt><br></p>
+</div><p>    Formats local time with default format</p>
+
+<h3 class="function"><a name="format_localtime-5">format_localtime/5</a></h3>
+<div class="spec">
+<p><tt>format_localtime(Time::<a href="calendar.html#type-time">calendar:time()</a>, Utime::non_neg_integer(), TZ::integer(), Format::<a href="#type-time_format">time_format()</a>, TZFormat::<a href="#type-timezone_format">timezone_format()</a>) -&gt; nonempty_string()</tt><br></p>
+</div><p>    Formats local time according to supplied format</p>
+
+<h3 class="function"><a name="format_time-2">format_time/2</a></h3>
+<div class="spec">
+<p><tt>format_time(Time::<a href="calendar.html#type-time">calendar:time()</a>, Utime::non_neg_integer()) -&gt; nonempty_string()</tt><br></p>
+</div><p>    Formats time wigh general, or general_frac format</p>
+
+<h3 class="function"><a name="format_time-3">format_time/3</a></h3>
+<div class="spec">
+<p><tt>format_time(Time::<a href="calendar.html#type-time">calendar:time()</a>, Utime::non_neg_integer(), Format::<a href="#type-time_format">time_format()</a>) -&gt; nonempty_string()</tt><br></p>
+</div><p>    Formats time according to supplied format</p>
+
+<h3 class="function"><a name="format_timezone-1">format_timezone/1</a></h3>
+<div class="spec">
+<p><tt>format_timezone(TZ::integer()) -&gt; nonempty_string()</tt><br></p>
+</div><p>    Formats timezone  with defualt format</p>
+
+<h3 class="function"><a name="format_timezone-2">format_timezone/2</a></h3>
+<div class="spec">
+<p><tt>format_timezone(TZ::integer(), TZFormat::<a href="#type-timezone_format">timezone_format()</a>) -&gt; nonempty_string()</tt><br></p>
+</div><p>    Formats timeozne according to supplied format</p>
+
+<h3 class="function"><a name="parse_date-1">parse_date/1</a></h3>
+<div class="spec">
+<p><tt>parse_date(Date::binary() | nonempty_string()) -&gt; {Date::<a href="calendar.html#type-date">calendar:date()</a>, Format::<a href="#type-date_format">date_format()</a>}</tt><br></p>
+</div><p><p>	Parses dates autodetecting one of formats specified in standard</p>
+ 
+  This function Detects format of the date as specified in ISO 8601 standard section 4.1.
+  The autodetection is based on length, and position of separators ( like "-" )
+  or special characters ( like "W" )</p>
+
+<h3 class="function"><a name="parse_datetime-1">parse_datetime/1</a></h3>
+<div class="spec">
+<p><tt>parse_datetime(String::nonempty_string()) -&gt; {{Date::<a href="calendar.html#type-date">calendar:date()</a>, Time::<a href="calendar.html#type-time">calendar:time()</a>, MicroSec::non_neg_integer(), TD::<a href="#type-time_difference">time_difference()</a>}, {DateFormat::<a href="#type-date_format">date_format()</a>, TimeFormat::<a href="#type-time_format">time_format()</a>}}</tt><br></p>
+</div><p>	Parses datetime with default format</p>
+
+<h3 class="function"><a name="parse_localdatetime-1">parse_localdatetime/1</a></h3>
+<div class="spec">
+<p><tt>parse_localdatetime(String::nonempty_string()) -&gt; {{Date::<a href="calendar.html#type-date">calendar:date()</a>, Time::<a href="calendar.html#type-time">calendar:time()</a>, MicroSec::non_neg_integer(), TD::<a href="#type-time_difference">time_difference()</a>}, {DateFormat::<a href="#type-date_format">date_format()</a>, TimeFormat::<a href="#type-time_format">time_format()</a>, TZFormat::<a href="#type-timezone_format">timezone_format()</a>}}</tt><br></p>
+</div><p>	Parses local datetime</p>
+
+<h3 class="function"><a name="parse_localtime-1">parse_localtime/1</a></h3>
+<div class="spec">
+<p><tt>parse_localtime(String::nonempty_string()) -&gt; {{Time::<a href="calendar.html#type-time">calendar:time()</a>, MicroSec::non_neg_integer(), TD::<a href="#type-time_difference">time_difference()</a>}, {TimeFormat::<a href="#type-time_format">time_format()</a>, TZFormat::<a href="#type-timezone_format">timezone_format()</a>}}</tt><br></p>
+</div><p>	Parses localtime (time with timezone)</p>
+
+<h3 class="function"><a name="parse_time-1">parse_time/1</a></h3>
+<div class="spec">
+<p><tt>parse_time(String::nonempty_string()) -&gt; {{Time::<a href="calendar.html#type-time">calendar:time()</a>, MicroSec::non_neg_integer()}, Format::<a href="#type-time_format">time_format()</a>}</tt><br></p>
+</div><p>	Parses time in specified format</p>
+<hr>
+
+<div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<p><i>Generated by EDoc, Jan 6 2014, 15:07:07.</i></p>
+</body>
+</html>
